@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Teste Matéria-Prima - App Testes Ferracini</title>
+    <link rel="stylesheet" href="dashboard_style.css">
+    <style>
+        /* Estilos adicionais específicos para esta página podem ir aqui ou em um novo CSS */
+        .form-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 700px; /* Ajuste conforme necessário */
+            margin: 30px auto; /* Centraliza o formulário */
+        }
+        .form-container h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        /* Mais estilos para o formulário virão depois */
+    </style>
+</head>
+<body>
+    <header>
+        <h1><a href="dashboard.html" style="color:white; text-decoration:none;">App Testes Ferracini</a></h1>
+        <div id="userInfo">Carregando...</div>
+        <button id="logoutButton">Sair</button>
+    </header>
+
+    <main>
+        <div class="form-container">
+            <h2>Cadastrar Novo Teste de Matéria-Prima</h2>
+            <form id="formCadastrarTesteMp">
+                <div>
+                    <label for="materiaPrima">Matéria-Prima:</label>
+                    <select id="materiaPrima" name="materiaPrima" required>
+                        <option value="">Selecione a Matéria-Prima...</option>
+                        </select>
+                </div>
+
+                <div>
+                    <label for="tipoTeste">Tipo de Teste:</label>
+                    <select id="tipoTeste" name="tipoTeste" required>
+                        <option value="">Selecione o Tipo de Teste...</option>
+                        </select>
+                </div>
+
+                <div>
+                    <label for="dataTeste">Data do Teste:</label>
+                    <input type="date" id="dataTeste" name="dataTeste" required>
+                </div>
+
+                <div>
+                    <label for="resultadoTeste">Resultado:</label>
+                    <select id="resultadoTeste" name="resultadoTeste" required>
+                        <option value="">Selecione o Resultado...</option>
+                        <option value="Aprovado">Aprovado</option>
+                        <option value="Reprovado">Reprovado</option>
+                        <option value="Em Análise">Em Análise</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="observacoesTeste">Observações:</label>
+                    <textarea id="observacoesTeste" name="observacoesTeste" rows="4"></textarea>
+                </div>
+
+                <div>
+                    <label for="fotosMaterial">Fotos do Material (selecione várias, se necessário):</label>
+                    <input type="file" id="fotosMaterial" name="fotosMaterial" multiple accept="image/*">
+                </div>
+
+                <button type="submit" class="submit-button">Salvar Teste</button>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 App Testes Ferracini</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+
+    <script>
+      // SUA CONFIGURAÇÃO DO FIREBASE (a mesma que você usou no login.html/dashboard.html)
+      const firebaseConfig = {
+        apiKey: "AIzaSyAUKe6gxt_DGbtFDhw5VbfTI6BcHwad9qU",
+        authDomain: "testify-fs.firebaseapp.com",
+        projectId: "testify-fs",
+        storageBucket: "testify-fs.firebasestorage.app",
+        messagingSenderId: "839372061859",
+        appId: "1:839372061859:web:a2de9ba7905433f58f1316",
+        measurementId: "G-SPWXG3L1TF"
+        };
+      firebase.initializeApp(firebaseConfig);
+      console.log("Firebase SDK inicializado em cadastrar_teste_mp.html!");
+    </script>
+
+    <script src="cadastrar_teste_mp_app.js"></script>
+</body>
+</html>

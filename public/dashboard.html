@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - App Testes Ferracini</title>
+    <link rel="stylesheet" href="dashboard_style.css">
+    </head>
+<body>
+    <header>
+        <h1>Painel Principal</h1>
+        <div id="userInfo">Carregando informações do usuário...</div>
+        <button id="logoutButton">Sair</button>
+    </header>
+
+    <main>
+        <h2>O que você gostaria de fazer?</h2>
+        <div class="dashboard-menu">
+        <a href="cadastrar_teste_mp.html" class="menu-item" id="navCadastrarTesteMateriaPrima">
+            <span>Cadastrar Teste de Matéria-Prima</span>
+        </a>
+        <a href="#" class="menu-item" id="navVisualizarTestesMateriaPrima">
+            <span>Visualizar Testes de Matéria-Prima</span>
+        </a>
+        <a href="#" class="menu-item" id="navCadastrarTesteCalcadoPronto">
+            <span>Cadastrar Teste de Calçado Pronto</span>
+        </a>
+        <a href="#" class="menu-item" id="navVisualizarTestesCalcadoPronto">
+            <span>Visualizar Testes de Calçado Pronto</span>
+        </a>
+
+        <a href="#" class="menu-item admin-only" id="navGerenciarUsuarios">
+            <span>Gerenciar Usuários</span>
+        </a>
+        <a href="#" class="menu-item admin-only" id="navGerenciarTiposTeste">
+            <span>Gerenciar Tipos de Teste</span>
+        </a>
+        <a href="#" class="menu-item admin-only" id="navGerenciarFornecedores">
+            <span>Gerenciar Fornecedores</span>
+        </a>
+        <a href="#" class="menu-item admin-only" id="navGerenciarMateriasPrimas">
+            <span>Gerenciar Matérias-Primas</span>
+        </a>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 App Testes Ferracini</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script>
+    // SUA CONFIGURAÇÃO DO FIREBASE (a mesma que você usou no login.html)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAUKe6gxt_DGbtFDhw5VbfTI6BcHwad9qU",
+            authDomain: "testify-fs.firebaseapp.com",
+            projectId: "testify-fs",
+            storageBucket: "testify-fs.firebasestorage.app",
+            messagingSenderId: "839372061859",
+            appId: "1:839372061859:web:a2de9ba7905433f58f1316",
+            measurementId: "G-SPWXG3L1TF"
+        };
+
+    // Inicializa o Firebase
+    firebase.initializeApp(firebaseConfig);
+    console.log("Firebase SDK inicializado no dashboard!");
+    </script>
+
+    <script src="dashboard_app.js"></script>
+
+</body>
+</html>

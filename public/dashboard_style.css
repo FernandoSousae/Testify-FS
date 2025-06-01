@@ -1,0 +1,131 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    background-color: #f4f6f8;
+    color: #333;
+}
+
+header {
+    background-color: #333;
+    color: white;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+#userInfo {
+    font-size: 0.9em;
+}
+
+#logoutButton {
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#logoutButton:hover {
+    background-color: #c9302c;
+}
+
+main {
+    padding: 20px;
+    text-align: center;
+}
+
+.dashboard-menu {
+    display: flex;
+    flex-wrap: wrap; /* Permite que os itens quebrem para a próxima linha */
+    justify-content: center; /* Centraliza os itens */
+    gap: 20px; /* Espaço entre os itens */
+    margin-top: 30px;
+}
+
+.menu-item {
+    background-color: #fff;
+    color: #333;
+    text-decoration: none;
+    padding: 20px;
+    border-radius: 8px; /* Bordas levemente arredondadas */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    width: 180px; /* Largura fixa para cada item */
+    height: 120px; /* Altura fixa para cada item */
+    display: flex;
+    flex-direction: column; /* Para empilhar ícone (futuro) e texto */
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-item:hover {
+    transform: translateY(-5px); /* Efeito de elevação ao passar o mouse */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.menu-item span {
+    font-size: 1em;
+    margin-top: 10px; /* Espaço para o ícone que virá acima */
+}
+
+/* Esconde itens de admin por padrão. Mostraremos com JS. */
+.admin-only {
+    /* display: none; */ /* Descomente quando formos implementar a lógica de visibilidade */
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 40px;
+    font-size: 0.9em;
+    color: #777;
+}
+
+#formCadastrarTesteMp div {
+    margin-bottom: 15px;
+}
+
+#formCadastrarTesteMp label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    text-align: left;
+}
+
+#formCadastrarTesteMp input[type="date"],
+#formCadastrarTesteMp select,
+#formCadastrarTesteMp textarea,
+#formCadastrarTesteMp input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Importante para padding não afetar largura total */
+}
+
+#formCadastrarTesteMp textarea {
+    resize: vertical; /* Permite redimensionamento vertical */
+}
+
+.submit-button {
+    background-color: #28a745; /* Verde para salvar */
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+    background-color: #218838;
+}
