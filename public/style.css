@@ -1,0 +1,74 @@
+/* Estilos gerais para o corpo da página */
+body {
+    font-family: sans-serif; /* Uma fonte simples e limpa */
+    display: flex; /* Usaremos flexbox para centralizar o conteúdo */
+    justify-content: center; /* Centraliza horizontalmente */
+    align-items: center; /* Centraliza verticalmente */
+    min-height: 100vh; /* Altura mínima de toda a tela */
+    margin: 0; /* Remove margens padrão */
+    background-color: #f0f2f5; /* Um fundo cinza claro, similar à referência */
+}
+
+/* Estilizando o container do formulário */
+#loginContainer { /* Adicionaremos um ID ao redor do formulário no HTML */
+    background-color: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center; /* Para centralizar o logo/título dentro do container */
+    width: 360px; /* Largura do container do login */
+}
+
+/* Estilizando o título/logo */
+#loginContainer h1 {
+    margin-bottom: 24px;
+    font-size: 28px;
+    color: #333;
+}
+
+/* Estilizando os campos de formulário */
+#loginForm div {
+    margin-bottom: 15px;
+    text-align: left; /* Alinha labels à esquerda */
+}
+
+#loginForm label {
+    display: block; /* Faz o label ocupar a linha inteira */
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+#loginForm input[type="email"],
+#loginForm input[type="password"] {
+    width: calc(100% - 20px); /* Largura total menos o padding interno */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px; /* Bordas arredondadas */
+    box-sizing: border-box; /* Garante que padding não aumente a largura total */
+}
+
+/* Estilizando o botão de login */
+#loginForm button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff; /* Azul, similar à referência */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer; /* Muda o cursor ao passar por cima */
+    transition: background-color 0.3s ease; /* Efeito suave na mudança de cor */
+}
+
+#loginForm button[type="submit"]:hover {
+    background-color: #0056b3; /* Azul um pouco mais escuro no hover */
+}
+
+/* Adicione este trecho ao seu style.css */
+
+#loginContainer img {
+    max-width: 180px; /* Define uma largura máxima para o logo */
+    height: auto;    /* Mantém a proporção da imagem ao ajustar a largura */
+    margin-bottom: 20px; /* Adiciona um espaço abaixo do logo */
+}
