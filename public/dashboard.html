@@ -48,24 +48,12 @@
         <p>&copy; 2025 App Testes Ferracini</p>
     </footer>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="firebase-config.js"></script> <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
-    <script>
-    // SUA CONFIGURAÇÃO DO FIREBASE (a mesma que você usou no login.html)
-        const firebaseConfig = {
-            apiKey: "AIzaSyAUKe6gxt_DGbtFDhw5VbfTI6BcHwad9qU",
-            authDomain: "testify-fs.firebaseapp.com",
-            projectId: "testify-fs",
-            storageBucket: "testify-fs.firebasestorage.app",
-            messagingSenderId: "839372061859",
-            appId: "1:839372061859:web:a2de9ba7905433f58f1316",
-            measurementId: "G-SPWXG3L1TF"
-        };
-
-    // Inicializa o Firebase
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script> <script>
+    // A variável firebaseConfig agora vem do arquivo firebase-config.js
     firebase.initializeApp(firebaseConfig);
-    console.log("Firebase SDK inicializado no dashboard!");
+    console.log("Firebase SDK inicializado!");
     </script>
 
     <script src="dashboard_app.js"></script>
