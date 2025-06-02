@@ -81,12 +81,15 @@
         <p>&copy; 2025 App Testes Ferracini</p>
     </footer>
 
-    <script src="firebase-config.js"></script> <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script> <script>
-    // A variável firebaseConfig agora vem do arquivo firebase-config.js
-    firebase.initializeApp(firebaseConfig);
-    console.log("Firebase SDK inicializado!");
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js"></script> <script>
+      // A variável firebaseConfig agora vem do arquivo firebase-config.js
+      firebase.initializeApp(firebaseConfig);
+      // Pode mudar este log para indicar que Storage também está pronto, se quiser
+      console.log("Firebase SDK (App, Auth, Firestore, Storage) inicializado em cadastrar_teste_mp.html!");
     </script>
 
     <script src="cadastrar_teste_mp_app.js"></script>
