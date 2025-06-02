@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Teste Calçado Pronto - App Testes Ferracini</title>
+    <link rel="stylesheet" href="dashboard_style.css"> <style>
+        /* Estilos do form-container da página anterior podem ser reutilizados ou adaptados */
+        .form-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 700px; /* Ajuste conforme necessário */
+            margin: 30px auto; /* Centraliza o formulário */
+        }
+        .form-container h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        /* Estilos específicos para este formulário podem ser adicionados aqui ou em dashboard_style.css */
+        #formCadastrarTesteCp div {
+            margin-bottom: 15px;
+        }
+        #formCadastrarTesteCp label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            text-align: left;
+        }
+        #formCadastrarTesteCp input[type="text"],
+        #formCadastrarTesteCp input[type="date"],
+        #formCadastrarTesteCp input[type="file"],
+        #formCadastrarTesteCp select,
+        #formCadastrarTesteCp textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        #formCadastrarTesteCp textarea {
+            resize: vertical;
+        }
+        .submit-button { /* Estilo do botão de submit */
+            background-color: #007bff; /* Azul para diferenciar do verde do outro form */
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .submit-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><a href="dashboard.html" style="color:white; text-decoration:none;">App Testes Ferracini</a></h1>
+        <div id="userInfo">Carregando...</div>
+        <button id="logoutButton">Sair</button>
+    </header>
+
+    <main>
+        <div class="form-container">
+            <h2>Cadastrar Novo Teste de Calçado Pronto</h2>
+            <form id="formCadastrarTesteCp">
+                <div>
+                    <label for="subCategoriaCp">Sub-categoria:</label>
+                    <select id="subCategoriaCp" name="subCategoriaCp" required>
+                        <option value="">Selecione a Sub-categoria...</option>
+                        <option value="Modelo Novo">Modelo Novo</option>
+                        <option value="Teste de Produção">Teste de Produção</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="linhaCalcado">Linha do Calçado:</label>
+                    <input type="text" id="linhaCalcado" name="linhaCalcado" required>
+                </div>
+
+                <div>
+                    <label for="referenciaCalcado">Referência do Calçado:</label>
+                    <input type="text" id="referenciaCalcado" name="referenciaCalcado" required>
+                </div>
+
+            <div>
+                <label for="dataInicioTesteCp">Data de Início do Teste:</label>
+                <input type="date" id="dataInicioTesteCp" name="dataInicioTesteCp" required>
+            </div>
+
+            <div>
+                <label for="dataFimTesteCp">Data de Fim do Teste:</label>
+                <input type="date" id="dataFimTesteCp" name="dataFimTesteCp">
+            </div>
+
+            <div>
+                <label for="tipoTesteCp">Tipo de Teste:</label>
+                <select id="tipoTesteCp" name="tipoTesteCp" required>
+                    <option value="">Selecione o Tipo de Teste...</option>
+                    </select>
+            </div>
+
+            <div>
+                <label for="resultadoTesteCp">Resultado:</label>
+                <select id="resultadoTesteCp" name="resultadoTesteCp" required>
+                    <option value="">Selecione o Resultado...</option>
+                    <option value="Aprovado">Aprovado</option>
+                    <option value="Reprovado">Reprovado</option>
+                    <option value="Em Análise">Em Análise</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="requisitanteTesteCp">Requisitante do Teste:</label>
+                <input type="text" id="requisitanteTesteCp" name="requisitanteTesteCp">
+            </div>
+
+            <div>
+                <label for="planoProducaoCp">Plano de Produção (Lote/OP):</label>
+                <input type="text" id="planoProducaoCp" name="planoProducaoCp">
+            </div>
+
+            <div>
+                <label for="materiaisAvaliadosCp">Materiais Avaliados no Teste:</label>
+                <textarea id="materiaisAvaliadosCp" name="materiaisAvaliadosCp" rows="3"></textarea>
+            </div>
+
+            <div>
+                <label for="fabricaProducaoCp">Fábrica da Produção:</label>
+                <select id="fabricaProducaoCp" name="fabricaProducaoCp" required>
+                    <option value="">Selecione a Fábrica...</option>
+                    <option value="Fábrica 01 BA">Fábrica 01 BA</option>
+                    <option value="Fábrica 02 BA">Fábrica 02 BA</option>
+                    <option value="Fábrica 03 BA">Fábrica 03 BA</option>
+                    <option value="Matriz">Matriz</option>
+                    <option value="Terceiros">Terceiros</option>
+                </select>
+            </div>
+            
+            <div>
+                <label for="observacoesTesteCp">Observações Gerais:</label>
+                <textarea id="observacoesTesteCp" name="observacoesTesteCp" rows="4"></textarea>
+            </div>
+
+            <div>
+                <label for="fotosCalcado">Fotos do Calçado (selecione várias, se necessário):</label>
+                <input type="file" id="fotosCalcado" name="fotosCalcado" multiple accept="image/*">
+            </div>
+
+            <button type="submit" class="submit-button">Salvar Teste de Calçado</button>
+        </form>
+    </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 App Testes Ferracini</p>
+    </footer>
+
+    <script src="firebase-config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js"></script> <script>
+      // SUA CONFIGURAÇÃO DO FIREBASE (a mesma)
+      // firebaseConfig já vem do firebase-config.js
+      firebase.initializeApp(firebaseConfig);
+      console.log("Firebase SDK inicializado em cadastrar_teste_cp.html!");
+    </script>
+
+    <script src="cadastrar_teste_cp_app.js"></script>
+</body>
+</html>
