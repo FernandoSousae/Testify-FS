@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Usuários - App Testes Ferracini</title>
+    <link rel="stylesheet" href="dashboard_style.css">
+    <style>
+        .admin-container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .admin-container h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .user-list-container, .add-user-form-container {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        #listaUsuarios {
+            list-style-type: none;
+            padding: 0;
+        }
+        .user-item {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .user-item:last-child {
+            border-bottom: none;
+        }
+        .user-item span {
+            margin-right: 10px;
+        }
+        #formAdicionarUsuario div {
+            margin-bottom: 15px;
+        }
+        #formAdicionarUsuario label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            text-align: left;
+        }
+        #formAdicionarUsuario input[type="text"],
+        #formAdicionarUsuario input[type="email"],
+        #formAdicionarUsuario input[type="password"],
+        #formAdicionarUsuario select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .submit-button {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .submit-button:hover {
+            background-color: #138496;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><a href="dashboard.html" style="color:white; text-decoration:none;">App Testes Ferracini</a></h1>
+        <div id="userInfo">A carregar...</div>
+        <button id="logoutButton">Sair</button>
+    </header>
+
+    <main>
+        <div class="admin-container">
+            <h2>Gerenciar Usuários</h2>
+            <div class="add-user-form-container">
+                <h3>Adicionar Novo Usuário</h3>
+                <form id="formAdicionarUsuario">
+                    <div>
+                        <label for="novoUsuarioNome">Nome Completo:</label>
+                        <input type="text" id="novoUsuarioNome" required>
+                    </div>
+                    <div>
+                        <label for="novoUsuarioEmail">Email:</label>
+                        <input type="email" id="novoUsuarioEmail" required>
+                    </div>
+                    <div>
+                        <label for="novoUsuarioSenha">Senha Inicial:</label>
+                        <input type="password" id="novoUsuarioSenha" required>
+                    </div>
+                    <div>
+                        <label for="novoUsuarioTipo">Tipo de Usuário:</label>
+                        <select id="novoUsuarioTipo" required>
+                            <option value="">Selecione o tipo...</option>
+                            <option value="Consulta">Consulta</option>
+                            <option value="Qualidade">Qualidade</option>
+                            <option value="Administrador">Administrador</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="submit-button">Adicionar Usuário</button>
+                </form>
+            </div>
+            <div class="user-list-container">
+                <h3>Usuários Cadastrados</h3>
+                <div id="listaUsuarios">
+                    <p>A carregar usuários...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 App Testes Ferracini</p>
+    </footer>
+
+    <!-- PASSO 1: Carregar a configuração do Firebase -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- PASSO 2: Carregar os SDKs do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    
+    <!-- PASSO 3: Script de inicialização do Firebase e carregamento do script da página -->
+    <script>
+      // Função para inicializar tudo após os SDKs estarem prontos
+      function inicializarAppGerenciamentoUsuarios() {
+        if (typeof firebaseConfig !== 'undefined') {
+          if (firebase.apps.length === 0) { // Inicializar apenas se não houver app [DEFAULT]
+            firebase.initializeApp(firebaseConfig);
+            console.log("Firebase SDK inicializado em gerenciar_usuarios.html!");
+          } else {
+            console.log("Firebase SDK já estava inicializado em gerenciar_usuarios.html.");
+          }
+          
+          // Agora que o Firebase está inicializado, carregue o script da página
+          var scriptPagina = document.createElement('script');
+          scriptPagina.src = 'gerenciar_usuarios_app.js';
+          document.body.appendChild(scriptPagina);
+
+        } else {
+          console.error("ERRO FATAL: firebaseConfig não está definido. Verifique 'firebase-config.js'.");
+          const mainContentError = document.querySelector('main');
+          if (mainContentError) {
+              mainContentError.innerHTML = '<div class="admin-container"><p style="color:red; text-align:center;">Erro crítico na configuração. Contacte o suporte.</p></div>';
+              mainContentError.style.display = 'block';
+          }
+        }
+      }
+
+      // Verificar se os SDKs do Firebase foram carregados antes de tentar inicializar.
+      // Uma forma simples é verificar se o objeto 'firebase' existe.
+      // Para uma abordagem mais robusta, poderíamos usar callbacks dos scripts ou Promises,
+      // mas para este caso, vamos tentar uma verificação e um pequeno atraso se necessário.
+      if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
+        inicializarAppGerenciamentoUsuarios();
+      } else {
+        // Se o firebase não estiver pronto imediatamente, espera um pouco e tenta de novo.
+        // Isto é um paliativo; o ideal é que a ordem dos scripts e 'defer' cuidem disso.
+        console.warn("Firebase SDK ainda não carregado, a aguardar um momento...");
+        setTimeout(function() {
+            if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
+                inicializarAppGerenciamentoUsuarios();
+            } else {
+                console.error("ERRO CRÍTICO: Firebase SDK não carregou a tempo.");
+                 const mainContentError = document.querySelector('main');
+                if (mainContentError) {
+                    mainContentError.innerHTML = '<div class="admin-container"><p style="color:red; text-align:center;">Erro crítico ao carregar bibliotecas. Contacte o suporte.</p></div>';
+                    mainContentError.style.display = 'block';
+                }
+            }
+        }, 500); // Espera 500ms
+      }
+    </script>
+</body>
+</html>

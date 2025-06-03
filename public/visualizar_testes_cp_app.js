@@ -4,6 +4,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const db = firebase.firestore();
     const listaTestesCpDiv = document.getElementById('listaTestesCp');
 
+    // Elementos do Modal
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImage");
+    const captionText = document.getElementById("caption");
+    const closeModalButton = document.querySelector(".close-modal-button");
+
+    // Função para fechar o modal
+    function fecharModal() {
+        if (modal) modal.style.display = "none";
+    }
+
+        if (closeModalButton) {
+            closeModalButton.onclick = fecharModal;
+    }
+        // Opcional: Fechar modal ao clicar fora da imagem (no fundo escuro)
+        if (modal) {
+            modal.onclick = function(event) {
+                if (event.target === modal) { // Verifica se o clique foi no fundo do modal
+                    fecharModal();
+            }
+        }
+    }
+
     function formatarTimestamp(timestamp) {
         if (timestamp && typeof timestamp.toDate === 'function') {
             const data = timestamp.toDate();
@@ -57,7 +80,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (teste.fotos_calcado_urls && teste.fotos_calcado_urls.length > 0) {
                     fotosHtml = '<div class="fotos-container">';
                     teste.fotos_calcado_urls.forEach(url => {
-                        fotosHtml += `<img src="${url}" alt="Foto do calçado" style="max-width: 100px; max-height: 100px; margin: 5px;">`;
+                        // LINHA CORRIGIDA:
+                        fotosHtml += `<img src="${url}" alt="Foto do calçado" class="thumbnail-image" data-src="${url}" style="max-width: 100px; max-height: 100px; margin: 5px;">`;
                     });
                     fotosHtml += '</div>';
                 }
@@ -84,6 +108,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 `);
             }
             listaTestesCpDiv.innerHTML = `<ul>${htmlTestesItens.join('')}</ul>`;
+
+            // Após adicionar o HTML ao DOM, adicionamos os event listeners às imagens
+            document.querySelectorAll('.thumbnail-image').forEach(img => {
+                img.onclick = function() {
+                    if (modal && modalImg && captionText) {
+                        modal.style.display = "block";
+                        modalImg.src = this.dataset.src; // Usamos data-src para garantir que é o URL original
+                        captionText.innerHTML = this.alt; // Opcional: usar o alt como legenda
+                    }
+                }
+            });
 
         } catch (error) {
             console.error("Erro ao buscar testes de calçado pronto: ", error);
