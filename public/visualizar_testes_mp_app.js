@@ -4,6 +4,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const db = firebase.firestore(); // Descomente ou adicione para ter a referência ao Firestore
     const listaTestesMpDiv = document.getElementById('listaTestesMp'); // Div onde os testes serão listados
 
+    // Elementos do Modal
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImage");
+    const captionText = document.getElementById("caption");
+    const closeModalButton = document.querySelector(".close-modal-button");
+
+    // Função para fechar o modal
+    function fecharModal() {
+        if (modal) modal.style.display = "none";
+    }
+
+    if (closeModalButton) {
+        closeModalButton.onclick = fecharModal;
+    }
+    // Opcional: Fechar modal ao clicar fora da imagem (no fundo escuro)
+    if (modal) {
+        modal.onclick = function(event) {
+            if (event.target === modal) { // Verifica se o clique foi no fundo do modal
+                fecharModal();
+            }
+        }
+    }
+
     // Função para formatar Timestamps do Firestore para uma data legível
     function formatarTimestamp(timestamp) {
         if (timestamp && typeof timestamp.toDate === 'function') {
@@ -77,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (teste.fotos_material_urls && teste.fotos_material_urls.length > 0) {
                     fotosHtml = '<div class="fotos-container">';
                     teste.fotos_material_urls.forEach(url => {
-                        fotosHtml += `<img src="${url}" alt="Foto do material" style="max-width: 100px; max-height: 100px; margin: 5px;">`;
+                        fotosHtml += `<img src="${url}" alt="Foto do material" class="thumbnail-image" data-src="${url}" style="max-width: 100px; max-height: 100px; margin: 5px;">`;
                     });
                     fotosHtml += '</div>';
                 }
@@ -99,6 +122,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             listaTestesMpDiv.innerHTML = `<ul>${htmlTestesItens.join('')}</ul>`;
+
+            // Após adicionar o HTML ao DOM, adicionamos os event listeners às imagens
+            document.querySelectorAll('.thumbnail-image').forEach(img => {
+                img.onclick = function() {
+                    if (modal && modalImg && captionText) {
+                        modal.style.display = "block";
+                        modalImg.src = this.dataset.src; // Usamos data-src para garantir que é o URL original
+                        captionText.innerHTML = this.alt; // Opcional: usar o alt como legenda
+                    }
+                }
+            });
 
         } catch (error) {
             console.error("Erro ao buscar testes de matéria-prima: ", error);

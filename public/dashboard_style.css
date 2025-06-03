@@ -129,3 +129,72 @@ footer {
 .submit-button:hover {
     background-color: #218838;
 }
+
+/* Estilos para o Modal de Imagem */
+.modal {
+    display: none; /* Escondido por padrão */
+    position: fixed; /* Fica fixo na tela */
+    z-index: 1000; /* Garante que fique sobre outros elementos */
+    padding-top: 60px; /* Espaço do topo */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Permite scroll se a imagem for muito grande */
+    background-color: rgb(0,0,0); /* Fundo preto */
+    background-color: rgba(0,0,0,0.9); /* Fundo preto com opacidade */
+}
+
+.modal-content {
+    margin: auto;
+    display: block;
+    width: auto; /* Ajusta largura automaticamente */
+    max-width: 80%; /* Largura máxima da imagem */
+    max-height: 80vh; /* Altura máxima da imagem, relativa à altura da viewport */
+}
+
+#caption {
+    margin: auto;
+    display: block;
+    width: 80%;
+    max-width: 700px;
+    text-align: center;
+    color: #ccc;
+    padding: 10px 0;
+    height: 150px;
+}
+
+.modal-content, #caption {
+    animation-name: zoom;
+    animation-duration: 0.6s;
+}
+
+@keyframes zoom {
+    from {transform:scale(0)}
+    to {transform:scale(1)}
+}
+
+.close-modal-button {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.close-modal-button:hover,
+.close-modal-button:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Para tornar as miniaturas clicáveis */
+.fotos-container img {
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.fotos-container img:hover {opacity: 0.7;}
