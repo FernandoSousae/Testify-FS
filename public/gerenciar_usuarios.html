@@ -24,13 +24,16 @@
             border: 1px solid #eee;
             border-radius: 5px;
         }
-        #listaUsuarios {
+        #listaUsuarios ul {
             list-style-type: none;
             padding: 0;
         }
         .user-item {
             padding: 10px;
             border-bottom: 1px solid #f0f0f0;
+            display: flex; /* Para alinhar botões */
+            justify-content: space-between; /* Para espaçar informações e botões */
+            align-items: center; /* Para alinhar verticalmente */
         }
         .user-item:last-child {
             border-bottom: none;
@@ -38,10 +41,28 @@
         .user-item span {
             margin-right: 10px;
         }
-        #formAdicionarUsuario div {
+        .user-item button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .edit-user-btn {
+            background-color: #ffc107; /* Amarelo para editar */
+            border: none;
+            color: #212529;
+            border-radius: 4px;
+        }
+        .delete-user-btn {
+            background-color: #dc3545; /* Vermelho para excluir */
+            border: none;
+            color: white;
+            border-radius: 4px;
+        }
+
+        #formAdicionarUsuario div, #formEdicaoUsuario div {
             margin-bottom: 15px;
         }
-        #formAdicionarUsuario label {
+        #formAdicionarUsuario label, #formEdicaoUsuario label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
@@ -50,19 +71,61 @@
         #formAdicionarUsuario input[type="text"],
         #formAdicionarUsuario input[type="email"],
         #formAdicionarUsuario input[type="password"],
-        #formAdicionarUsuario select {
+        #formAdicionarUsuario select,
+        #formEdicaoUsuario input[type="text"],
+        #formEdicaoUsuario input[type="email"],
+        #formEdicaoUsuario select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
             box-sizing: border-box;
         }
-        .submit-button {
-            background-color: #17a2b8;
+        .submit-button { /* Para o formulário de adicionar */
+            background-color: #17a2b8; 
             color: white;
         }
         .submit-button:hover {
             background-color: #138496;
+        }
+
+        /* Estilos para o Modal de Edição */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1001; /* Acima do conteúdo normal */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .close-edit-modal-button { /* Renomeado para evitar conflito com o modal de imagem */
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+        .close-edit-modal-button:hover,
+        .close-edit-modal-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -76,6 +139,7 @@
     <main>
         <div class="admin-container">
             <h2>Gerenciar Usuários</h2>
+
             <div class="add-user-form-container">
                 <h3>Adicionar Novo Usuário</h3>
                 <form id="formAdicionarUsuario">
@@ -103,6 +167,7 @@
                     <button type="submit" class="submit-button">Adicionar Usuário</button>
                 </form>
             </div>
+
             <div class="user-list-container">
                 <h3>Usuários Cadastrados</h3>
                 <div id="listaUsuarios">
@@ -116,50 +181,63 @@
         <p>&copy; 2025 App Testes Ferracini</p>
     </footer>
 
-    <!-- PASSO 1: Carregar a configuração do Firebase -->
+    <!-- Modal de Edição de Usuário -->
+    <div id="modalEdicaoUsuario" class="modal">
+        <div class="modal-content">
+            <span class="close-edit-modal-button" id="botaoFecharModalEdicao">&times;</span>
+            <h3>Editar Usuário</h3>
+            <form id="formEdicaoUsuario">
+                <input type="hidden" id="hiddenUserIdEdicao">
+                <div>
+                    <label for="nomeUsuarioEdicao">Nome:</label>
+                    <input type="text" id="nomeUsuarioEdicao" readonly> <!-- Nome não editável por simplicidade -->
+                </div>
+                <div>
+                    <label for="emailUsuarioEdicao">Email:</label>
+                    <input type="email" id="emailUsuarioEdicao" readonly> <!-- Email não editável -->
+                </div>
+                <div>
+                    <label for="tipoUsuarioEdicao">Tipo de Usuário:</label>
+                    <select id="tipoUsuarioEdicao" required>
+                        <option value="Consulta">Consulta</option>
+                        <option value="Qualidade">Qualidade</option>
+                        <option value="Administrador">Administrador</option>
+                    </select>
+                </div>
+                <button type="submit" class="submit-button" style="background-color: #28a745;">Salvar Alterações</button> <!-- Botão verde para salvar -->
+            </form>
+        </div>
+    </div>
+
+
     <script src="firebase-config.js"></script>
-    
-    <!-- PASSO 2: Carregar os SDKs do Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
-    
-    <!-- PASSO 3: Script de inicialização do Firebase e carregamento do script da página -->
     <script>
-      // Função para inicializar tudo após os SDKs estarem prontos
       function inicializarAppGerenciamentoUsuarios() {
         if (typeof firebaseConfig !== 'undefined') {
-          if (firebase.apps.length === 0) { // Inicializar apenas se não houver app [DEFAULT]
+          if (firebase.apps.length === 0) {
             firebase.initializeApp(firebaseConfig);
             console.log("Firebase SDK inicializado em gerenciar_usuarios.html!");
           } else {
             console.log("Firebase SDK já estava inicializado em gerenciar_usuarios.html.");
           }
-          
-          // Agora que o Firebase está inicializado, carregue o script da página
           var scriptPagina = document.createElement('script');
           scriptPagina.src = 'gerenciar_usuarios_app.js';
           document.body.appendChild(scriptPagina);
-
         } else {
-          console.error("ERRO FATAL: firebaseConfig não está definido. Verifique 'firebase-config.js'.");
+          console.error("ERRO FATAL: firebaseConfig não está definido.");
           const mainContentError = document.querySelector('main');
           if (mainContentError) {
-              mainContentError.innerHTML = '<div class="admin-container"><p style="color:red; text-align:center;">Erro crítico na configuração. Contacte o suporte.</p></div>';
+              mainContentError.innerHTML = '<div class="admin-container"><p style="color:red; text-align:center;">Erro crítico na configuração.</p></div>';
               mainContentError.style.display = 'block';
           }
         }
       }
-
-      // Verificar se os SDKs do Firebase foram carregados antes de tentar inicializar.
-      // Uma forma simples é verificar se o objeto 'firebase' existe.
-      // Para uma abordagem mais robusta, poderíamos usar callbacks dos scripts ou Promises,
-      // mas para este caso, vamos tentar uma verificação e um pequeno atraso se necessário.
       if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
         inicializarAppGerenciamentoUsuarios();
       } else {
-        // Se o firebase não estiver pronto imediatamente, espera um pouco e tenta de novo.
-        // Isto é um paliativo; o ideal é que a ordem dos scripts e 'defer' cuidem disso.
         console.warn("Firebase SDK ainda não carregado, a aguardar um momento...");
         setTimeout(function() {
             if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
@@ -168,11 +246,11 @@
                 console.error("ERRO CRÍTICO: Firebase SDK não carregou a tempo.");
                  const mainContentError = document.querySelector('main');
                 if (mainContentError) {
-                    mainContentError.innerHTML = '<div class="admin-container"><p style="color:red; text-align:center;">Erro crítico ao carregar bibliotecas. Contacte o suporte.</p></div>';
+                    mainContentError.innerHTML = '<div class="admin-container"><p style="color:red; text-align:center;">Erro crítico ao carregar bibliotecas.</p></div>';
                     mainContentError.style.display = 'block';
                 }
             }
-        }, 500); // Espera 500ms
+        }, 500);
       }
     </script>
 </body>
