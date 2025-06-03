@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerir Tipos de Teste - App Testes Ferracini</title>
+    <link rel="stylesheet" href="dashboard_style.css"> <!-- Reutilizando o estilo do dashboard -->
+    <style>
+        .admin-container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .admin-container h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .list-container, .add-form-container {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        #listaTiposTeste ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .list-item {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        .list-item span {
+            margin-right: 10px;
+        }
+        .list-item button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .edit-btn {
+            background-color: #ffc107;
+            border: none;
+            color: #212529;
+            border-radius: 4px;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            border: none;
+            color: white;
+            border-radius: 4px;
+        }
+        /* Estilos para o formulário */
+        #formAdicionarTipoTeste div, #formEdicaoTipoTeste div {
+            margin-bottom: 15px;
+        }
+        #formAdicionarTipoTeste label, #formEdicaoTipoTeste label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            text-align: left;
+        }
+        #formAdicionarTipoTeste input[type="text"],
+        #formAdicionarTipoTeste select,
+        #formAdicionarTipoTeste textarea,
+        #formEdicaoTipoTeste input[type="text"],
+        #formEdicaoTipoTeste select,
+        #formEdicaoTipoTeste textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .submit-button {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .submit-button:hover {
+            background-color: #138496;
+        }
+        /* Estilos para o Modal de Edição (similar ao de usuários) */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .close-modal-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+        .close-modal-button:hover,
+        .close-modal-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><a href="dashboard.html" style="color:white; text-decoration:none;">App Testes Ferracini</a></h1>
+        <div id="userInfo">A carregar...</div>
+        <button id="logoutButton">Sair</button>
+    </header>
+
+    <main>
+        <div class="admin-container">
+            <h2>Gerir Tipos de Teste</h2>
+
+            <div class="add-form-container">
+                <h3>Adicionar Novo Tipo de Teste</h3>
+                <form id="formAdicionarTipoTeste">
+                    <div>
+                        <label for="nomeTipoTeste">Nome do Tipo de Teste:</label>
+                        <input type="text" id="nomeTipoTeste" required>
+                    </div>
+                    <div>
+                        <label for="descricaoTipoTeste">Descrição (Opcional):</label>
+                        <textarea id="descricaoTipoTeste" rows="3"></textarea>
+                    </div>
+                    <div>
+                        <label for="categoriaAplicavel">Categoria Aplicável:</label>
+                        <select id="categoriaAplicavel" required>
+                            <option value="">Selecione a categoria...</option>
+                            <option value="Matéria-Prima">Matéria-Prima</option>
+                            <option value="Calçado Pronto">Calçado Pronto</option>
+                            <option value="Ambos">Ambos</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="submit-button">Adicionar Tipo de Teste</button>
+                </form>
+            </div>
+
+            <div class="list-container">
+                <h3>Tipos de Teste Cadastrados</h3>
+                <div id="listaTiposTeste">
+                    <p>A carregar tipos de teste...</p>
+                    <!-- Os tipos de teste serão listados aqui -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 App Testes Ferracini</p>
+    </footer>
+
+    <!-- Modal de Edição de Tipo de Teste -->
+    <div id="modalEdicaoTipoTeste" class="modal">
+        <div class="modal-content">
+            <span class="close-modal-button" id="botaoFecharModalEdicaoTipoTeste">&times;</span>
+            <h3>Editar Tipo de Teste</h3>
+            <form id="formEdicaoTipoTeste">
+                <input type="hidden" id="hiddenTipoTesteIdEdicao">
+                <div>
+                    <label for="nomeTipoTesteEdicao">Nome do Tipo de Teste:</label>
+                    <input type="text" id="nomeTipoTesteEdicao" required>
+                </div>
+                <div>
+                    <label for="descricaoTipoTesteEdicao">Descrição (Opcional):</label>
+                    <textarea id="descricaoTipoTesteEdicao" rows="3"></textarea>
+                </div>
+                <div>
+                    <label for="categoriaAplicavelEdicao">Categoria Aplicável:</label>
+                    <select id="categoriaAplicavelEdicao" required>
+                        <option value="Matéria-Prima">Matéria-Prima</option>
+                        <option value="Calçado Pronto">Calçado Pronto</option>
+                        <option value="Ambos">Ambos</option>
+                    </select>
+                </div>
+                <button type="submit" class="submit-button" style="background-color: #28a745;">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="firebase-config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script>
+      function inicializarAppGerenciamentoTiposTeste() {
+        if (typeof firebaseConfig !== 'undefined') {
+          if (firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+            console.log("Firebase SDK inicializado em gerenciar_tipos_teste.html!");
+          } else {
+            console.log("Firebase SDK já estava inicializado em gerenciar_tipos_teste.html.");
+          }
+          var scriptPagina = document.createElement('script');
+          scriptPagina.src = 'gerenciar_tipos_teste_app.js';
+          document.body.appendChild(scriptPagina);
+        } else {
+          console.error("ERRO FATAL: firebaseConfig não está definido.");
+          const mainContentError = document.querySelector('main');
+          if (mainContentError) {
+              mainContentError.innerHTML = '<div class="admin-container"><p style="color:red; text-align:center;">Erro crítico na configuração.</p></div>';
+              mainContentError.style.display = 'block';
+          }
+        }
+      }
+      if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
+        inicializarAppGerenciamentoTiposTeste();
+      } else {
+        console.warn("Firebase SDK ainda não carregado, a aguardar um momento...");
+        setTimeout(function() {
+            if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
+                inicializarAppGerenciamentoTiposTeste();
+            } else {
+                console.error("ERRO CRÍTICO: Firebase SDK não carregou a tempo.");
+                 const mainContentError = document.querySelector('main');
+                if (mainContentError) {
+                    mainContentError.innerHTML = '<div class="admin-container"><p style="color:red; text-align:center;">Erro crítico ao carregar bibliotecas.</p></div>';
+                    mainContentError.style.display = 'block';
+                }
+            }
+        }, 500);
+      }
+    </script>
+</body>
+</html>
