@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Erro durante o upload de uma ou mais fotos: ",
                 error
               );
-              alert("Erro ao fazer upload das fotos. O teste não foi salvo.");
+              showToast("Erro ao fazer upload das fotos. O teste não foi salvo.", "error");
               submitButton.disabled = false;
               submitButton.textContent = "Salvar Teste";
               return;
@@ -155,12 +155,12 @@ document.addEventListener("DOMContentLoaded", function () {
             .add(testeData)
             .then((docRef) => {
               console.log("Teste de Matéria-Prima salvo com ID: ", docRef.id);
-              alert("Teste de Matéria-Prima salvo com sucesso!");
+              showToast("Teste de Matéria-Prima salvo com sucesso!", "success");
               formCadastrarTesteMp.reset();
             })
             .catch((error) => {
               console.error("Erro ao salvar o teste no Firestore: ", error);
-              alert("Erro ao salvar os dados do teste. Verifique o console.");
+              showToast("Erro ao salvar os dados do teste: " + error.message, "error");
             })
             .finally(() => {
               submitButton.disabled = false;

@@ -34,3 +34,8 @@
 .toast.error {
     background-color: #f44336; /* Vermelho para erro */
 }
+
+/* Estilo opcional para o tipo 'info' (padrão) */
+.toast.info {
+    background-color: #2196F3; /* Azul para informação, por exemplo */
+}
