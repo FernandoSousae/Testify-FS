@@ -18,17 +18,22 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
     const logoutButton = document.getElementById('logoutButton');
     const mainContent = document.querySelector('main');
     
-    // Elementos específicos desta página
     const listaTiposTesteDiv = document.getElementById('listaTiposTeste');
     const formAdicionarTipoTeste = document.getElementById('formAdicionarTipoTeste');
-    // Elementos do Modal de Edição (serão referenciados depois)
-    let modalEdicaoTipoTeste, formEdicaoTipoTeste, inputNomeEdicao, inputDescricaoEdicao, selectCategoriaEdicao, hiddenTipoTesteIdEdicao, botaoFecharModalEdicaoTipoTeste;
-
+    
+    // Elementos do Modal de Edição
+    const modalEdicaoTipoTeste = document.getElementById('modalEdicaoTipoTeste');
+    const formEdicaoTipoTeste = document.getElementById('formEdicaoTipoTeste');
+    const inputNomeEdicao = document.getElementById('nomeTipoTesteEdicao');
+    const inputDescricaoEdicao = document.getElementById('descricaoTipoTesteEdicao');
+    const selectCategoriaEdicao = document.getElementById('categoriaAplicavelEdicao');
+    const hiddenTipoTesteIdEdicao = document.getElementById('hiddenTipoTesteIdEdicao');
+    const botaoFecharModalEdicaoTipoTeste = document.getElementById('botaoFecharModalEdicaoTipoTeste');
 
     if (!mainContent) {
         console.error("gerenciar_tipos_teste_app.js: Elemento 'main' NÃO encontrado no DOM.");
     } else {
-        mainContent.style.display = 'none'; // Esconde por defeito
+        mainContent.style.display = 'none'; 
     }
     if (!listaTiposTesteDiv) {
         console.error("gerenciar_tipos_teste_app.js: Elemento 'listaTiposTeste' NÃO encontrado no DOM.");
@@ -36,6 +41,90 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
     if (!formAdicionarTipoTeste) {
         console.error("gerenciar_tipos_teste_app.js: Elemento 'formAdicionarTipoTeste' NÃO encontrado no DOM.");
     }
+    if (!modalEdicaoTipoTeste || !formEdicaoTipoTeste || !inputNomeEdicao || !inputDescricaoEdicao || !selectCategoriaEdicao || !hiddenTipoTesteIdEdicao || !botaoFecharModalEdicaoTipoTeste) {
+        console.warn("gerenciar_tipos_teste_app.js: Um ou mais elementos do modal de edição de tipo de teste não foram encontrados. Serão inicializados quando o modal for aberto.");
+    }
+
+    // Função para abrir e popular o modal de edição de Tipo de Teste
+    function abrirModalEdicaoTipoTeste(id, nome, descricao, categoria) {
+        if (!modalEdicaoTipoTeste || !formEdicaoTipoTeste || !inputNomeEdicao || !inputDescricaoEdicao || !selectCategoriaEdicao || !hiddenTipoTesteIdEdicao) {
+            console.error("Erro fatal: Elementos do modal de edição não encontrados ao tentar abrir.");
+            alert("Erro ao abrir formulário de edição.");
+            return;
+        }
+        hiddenTipoTesteIdEdicao.value = id;
+        inputNomeEdicao.value = nome;
+        inputDescricaoEdicao.value = descricao;
+        selectCategoriaEdicao.value = categoria;
+        modalEdicaoTipoTeste.style.display = 'block';
+    }
+
+    // Função para fechar o modal de edição de Tipo de Teste
+    function fecharModalEdicaoTipoTeste() {
+        if (modalEdicaoTipoTeste) {
+            modalEdicaoTipoTeste.style.display = 'none';
+        }
+    }
+
+    // Função para salvar as alterações do Tipo de Teste
+    function salvarEdicaoTipoTeste() {
+        if (!formEdicaoTipoTeste || !hiddenTipoTesteIdEdicao || !inputNomeEdicao || !selectCategoriaEdicao) return;
+
+        const id = hiddenTipoTesteIdEdicao.value;
+        const nome = inputNomeEdicao.value;
+        const descricao = inputDescricaoEdicao.value;
+        const categoria = selectCategoriaEdicao.value;
+
+        if (!nome || !categoria) {
+            alert("O nome do tipo de teste e a categoria aplicável são obrigatórios.");
+            return;
+        }
+        
+        const submitButton = formEdicaoTipoTeste.querySelector('button[type="submit"]');
+        if(submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'A salvar...';
+        }
+
+        db.collection("TiposTeste").doc(id).update({
+            nome_tipo_teste: nome,
+            descricao_tipo_teste: descricao,
+            categoria_aplicavel: categoria
+        })
+        .then(() => {
+            console.log("Tipo de teste atualizado com sucesso!");
+            alert("Tipo de teste atualizado com sucesso!");
+            fecharModalEdicaoTipoTeste();
+            carregarListaTiposTeste();
+        })
+        .catch((error) => {
+            console.error("Erro ao atualizar tipo de teste:", error);
+            alert("Erro ao atualizar tipo de teste. Detalhes no console.");
+        })
+        .finally(() => {
+            if(submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Salvar Alterações';
+            }
+        });
+    }
+    
+    // Função para excluir Tipo de Teste
+    function excluirTipoTeste(id, nome) {
+        if (confirm(`Tem certeza que deseja excluir o tipo de teste "${nome}"? Esta ação não pode ser desfeita.`)) {
+            db.collection("TiposTeste").doc(id).delete()
+                .then(() => {
+                    console.log("Tipo de teste excluído com sucesso!");
+                    alert(`Tipo de teste "${nome}" excluído com sucesso.`);
+                    carregarListaTiposTeste();
+                })
+                .catch((error) => {
+                    console.error("Erro ao excluir tipo de teste:", error);
+                    alert("Erro ao excluir tipo de teste. Detalhes no console.");
+                });
+        }
+    }
+
 
     // Função para carregar e exibir a lista de Tipos de Teste
     function carregarListaTiposTeste() {
@@ -61,8 +150,8 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
                                 <span style="font-size: 0.8em; color: #666;"><strong>Descrição:</strong> ${tipoTeste.descricao_tipo_teste || 'Nenhuma'}</span>
                             </div>
                             <div>
-                                <button class="edit-btn" data-id="${idTipoTeste}">Editar</button>
-                                <button class="delete-btn" data-id="${idTipoTeste}">Excluir</button>
+                                <button class="edit-btn" data-id="${idTipoTeste}" data-nome="${tipoTeste.nome_tipo_teste || ''}" data-descricao="${tipoTeste.descricao_tipo_teste || ''}" data-categoria="${tipoTeste.categoria_aplicavel || ''}">Editar</button>
+                                <button class="delete-btn" data-id="${idTipoTeste}" data-nome="${tipoTeste.nome_tipo_teste || ''}">Excluir</button>
                             </div>
                         </li>
                     `;
@@ -70,21 +159,20 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
                 htmlTiposTeste += '</ul>';
                 listaTiposTesteDiv.innerHTML = htmlTiposTeste;
 
-                // Adicionar event listeners para os botões de editar e excluir (implementação futura)
                 document.querySelectorAll('.edit-btn').forEach(button => {
                     button.addEventListener('click', function() {
                         const id = this.dataset.id;
-                        // Lógica para abrir modal de edição com dados do tipo de teste 'id'
-                        console.log("Editar tipo de teste ID:", id);
-                        alert("Funcionalidade de edição ainda não implementada.");
+                        const nome = this.dataset.nome;
+                        const descricao = this.dataset.descricao;
+                        const categoria = this.dataset.categoria;
+                        abrirModalEdicaoTipoTeste(id, nome, descricao, categoria);
                     });
                 });
                 document.querySelectorAll('.delete-btn').forEach(button => {
                     button.addEventListener('click', function() {
                         const id = this.dataset.id;
-                        // Lógica para excluir tipo de teste 'id'
-                        console.log("Excluir tipo de teste ID:", id);
-                        alert("Funcionalidade de exclusão ainda não implementada.");
+                        const nome = this.dataset.nome;
+                        excluirTipoTeste(id, nome);
                     });
                 });
 
@@ -124,7 +212,7 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
                 console.log("Novo tipo de teste adicionado com ID:", docRef.id);
                 alert("Novo tipo de teste adicionado com sucesso!");
                 formAdicionarTipoTeste.reset();
-                carregarListaTiposTeste(); // Atualiza a lista
+                carregarListaTiposTeste();
             })
             .catch((error) => {
                 console.error("Erro ao adicionar novo tipo de teste:", error);
@@ -155,13 +243,27 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
                         
                         carregarListaTiposTeste();
                         configurarFormularioAdicionarTipoTeste();
-                        // configurarModalEdicaoTipoTeste(); // Implementaremos depois
-                    } else {
-                        console.warn("gerenciar_tipos_teste_app.js: Acesso negado. Utilizador não é Administrador.");
-                        if (mainContent) {
-                            mainContent.innerHTML = '<div class="admin-container"><p style="color:red; text-align:center;">Acesso negado. Esta página é apenas para administradores.</p></div>';
-                            mainContent.style.display = 'block';
+                        
+                        // Configurar listeners para o modal de edição
+                        if (formEdicaoTipoTeste) {
+                            formEdicaoTipoTeste.addEventListener('submit', function(event) {
+                                event.preventDefault();
+                                salvarEdicaoTipoTeste();
+                            });
                         }
+                        if (botaoFecharModalEdicaoTipoTeste) {
+                            botaoFecharModalEdicaoTipoTeste.addEventListener('click', fecharModalEdicaoTipoTeste);
+                        }
+                        if (modalEdicaoTipoTeste) { // Para fechar clicando fora
+                            modalEdicaoTipoTeste.addEventListener('click', function(event) {
+                                if (event.target === modalEdicaoTipoTeste) {
+                                    fecharModalEdicaoTipoTeste();
+                                }
+                            });
+                        }
+
+                    } else {
+                        // ... (lógica de acesso negado)
                     }
                 } else {
                     // ... (tratamento de erro se documento do utilizador não for encontrado)

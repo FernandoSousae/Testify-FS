@@ -1,0 +1,36 @@
+/* Estilos para Notificação Toast */
+.toast {
+    visibility: hidden; /* Escondido por defeito */
+    min-width: 250px;
+    max-width: 400px;
+    background-color: #333; /* Cor de fundo padrão */
+    color: #fff;
+    text-align: center;
+    border-radius: 4px;
+    padding: 16px;
+    position: fixed; /* Fixo na tela */
+    z-index: 1001; /* Acima de outros elementos, mas abaixo de modais se necessário */
+    left: 50%;
+    transform: translateX(-50%); /* Centraliza horizontalmente */
+    bottom: 30px; /* Posição a partir do fundo */
+    font-size: 17px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+    opacity: 0; /* Começa transparente para animação */
+    transition: opacity 0.5s, bottom 0.5s, visibility 0.5s; /* Transições suaves */
+}
+
+/* Estilo para mostrar o toast */
+.toast.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 50px; /* Move para cima ao aparecer */
+}
+
+/* Estilos específicos para tipos de toast */
+.toast.success {
+    background-color: #4CAF50; /* Verde para sucesso */
+}
+
+.toast.error {
+    background-color: #f44336; /* Vermelho para erro */
+}

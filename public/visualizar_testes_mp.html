@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizar Testes de Matéria-Prima - App Testes Ferracini</title>
-    <link rel="stylesheet" href="dashboard_style.css"> <style>
+    <link rel="stylesheet" href="dashboard_style.css">
+    <link rel="stylesheet" href="global_styles.css">
+    <style>
         /* Estilos específicos para a lista de testes podem vir aqui ou em um CSS dedicado */
         .test-list-container {
             max-width: 900px;
@@ -85,6 +87,10 @@
     <footer>
         <p>&copy; 2025 App Testes Ferracini</p>
     </footer>
+
+    <div id="toastNotification" class="toast">
+        <span id="toastMessage"></span>
+    </div>
 
     <script src="firebase-config.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>

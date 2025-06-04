@@ -198,3 +198,26 @@ footer {
 }
 
 .fotos-container img:hover {opacity: 0.7;}
+
+/* Dentro de public/dashboard_style.css */
+
+.menu-item {
+    /* ... seus estilos existentes ... */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centraliza verticalmente */
+    align-items: center;   /* Centraliza horizontalmente */
+    text-align: center;
+    /* ... */
+}
+
+.menu-item i { /* Estilo para os ícones */
+    font-size: 2em; /* Ajuste o tamanho do ícone conforme necessário */
+    margin-bottom: 10px; /* Espaço entre o ícone e o texto */
+    color: #337ab7; /* Uma cor de exemplo para os ícones, pode ajustar */
+}
+
+.menu-item span {
+    font-size: 1em;
+    /* margin-top: 10px; /* Você já tinha, pode ajustar ou remover se o margin-bottom do ícone for suficiente */
+}
