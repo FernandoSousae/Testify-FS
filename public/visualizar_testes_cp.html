@@ -5,60 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizar Testes de Calçado Pronto - App Testes Ferracini</title>
     <link rel="stylesheet" href="dashboard_style.css">
-    <link rel="stylesheet" href="global_styles.css">
-    <style>
-        /* Estilos específicos para a lista de testes podem vir aqui ou em um CSS dedicado */
-        .test-list-container {
-            max-width: 900px;
-            margin: 30px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .test-list-container h2 {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        #listaTestesCp { /* Onde os testes serão exibidos */
-            list-style-type: none;
-            padding: 0;
-        }
-        /* Estilos para os itens da lista (copiados de visualizar_testes_mp.html para consistência) */
-        .item-teste {
-            background-color: #f9f9f9;
-            border: 1px solid #eee;
-            border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        .item-teste h3 {
-            margin-top: 0;
-            color: #333;
-        }
-        .item-teste p {
-            margin: 5px 0;
-            line-height: 1.6;
-        }
-        .item-teste strong {
-            color: #555;
-        }
-        .fotos-container img {
-            max-width: 100px;
-            max-height: 100px;
-            margin: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 3px;
-            background-color: white;
-        }
-        .item-teste hr {
-            border: 0;
-            border-top: 1px solid #eee;
-            margin-top: 15px;
-        }
-    </style>
+    <link rel="stylesheet" href="global_style.css">
+    <link rel="stylesheet" href="visualizar_testes_style.css"> 
 </head>
 <body>
     <header>
@@ -69,10 +17,10 @@
 
     <main>
         <div class="test-list-container">
-            <h2>Testes de Calçado Pronto Registados</h2>
+            <h2>Testes de Calçado Pronto Registrados</h2>
             <div id="listaTestesCp">
                 <p>A carregar testes...</p>
-                </div>
+            </div>
         </div>
     </main>
 
@@ -80,27 +28,84 @@
         <p>&copy; 2025 App Testes Ferracini</p>
     </footer>
 
+    <div id="imageModal" class="modal">
+        <span class="close-modal-button" id="closeImageModalBtn">&times;</span>
+        <img class="modal-content" id="modalImage" style="width: auto; max-width: 80%; max-height: 80vh;">
+    </div>
+
+    <div id="modalEdicaoTesteCp" class="modal">
+        <div class="modal-content">
+            <span class="close-modal-button" id="botaoFecharModalEdicaoTesteCp">&times;</span>
+            <h3>Editar Teste de Calçado Pronto</h3>
+            <form id="formEdicaoTesteCp">
+                <input type="hidden" id="hiddenTesteCpIdEdicao">
+                
+                <div>
+                    <label for="subCategoriaCpEdicao">Sub-categoria:</label>
+                    <select id="subCategoriaCpEdicao" required>
+                        <option value="Modelo Novo">Modelo Novo</option>
+                        <option value="Teste de Produção">Teste de Produção</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="linhaCalcadoEdicao">Linha do Calçado:</label>
+                    <input type="text" id="linhaCalcadoEdicao" required>
+                </div>
+                <div>
+                    <label for="referenciaCalcadoEdicao">Referência do Calçado:</label>
+                    <input type="text" id="referenciaCalcadoEdicao" required>
+                </div>
+                <div>
+                    <label for="dataInicioTesteCpEdicao">Data de Início:</label>
+                    <input type="date" id="dataInicioTesteCpEdicao" required>
+                </div>
+                 <div>
+                    <label for="dataFimTesteCpEdicao">Data de Fim:</label>
+                    <input type="date" id="dataFimTesteCpEdicao">
+                </div>
+                <div>
+                    <label for="tipoTesteCpEdicao">Tipo de Teste:</label>
+                    <select id="tipoTesteCpEdicao" required>
+                        <option value="">A carregar...</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="resultadoTesteCpEdicao">Resultado:</label>
+                    <select id="resultadoTesteCpEdicao" required>
+                        <option value="Aprovado">Aprovado</option>
+                        <option value="Reprovado">Reprovado</option>
+                        <option value="Em Análise">Em Análise</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="observacoesTesteCpEdicao">Observações Gerais:</label>
+                    <textarea id="observacoesTesteCpEdicao" rows="4"></textarea>
+                </div>
+                
+                <button type="submit" class="submit-button" style="background-color: #28a745;">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
     <div id="toastNotification" class="toast">
         <span id="toastMessage"></span>
     </div>
 
     <script src="firebase-config.js"></script>
+    <script src="utils.js"></script> 
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js"></script>
+    
     <script>
-      firebase.initializeApp(firebaseConfig);
-      console.log("Firebase SDK inicializado em visualizar_testes_cp.html!");
+        // Lógica de carregamento SIMPLIFICADA e ROBUSTA
+        if (typeof firebaseConfig !== 'undefined' && firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        var scriptPagina = document.createElement('script');
+        scriptPagina.src = 'visualizar_testes_cp_app.js'; // Aponta para o JS correto
+        document.body.appendChild(scriptPagina);
     </script>
-
-    <script src="utils.js"></script>
-    <script src="visualizar_testes_cp_app.js"></script>
-
-    <div id="imageModal" class="modal">
-        <span class="close-modal-button">&times;</span>
-        <img class="modal-content" id="modalImage">
-    <div id="caption"></div>
-</div>
 </body>
 </html>
