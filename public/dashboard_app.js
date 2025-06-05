@@ -86,11 +86,11 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
                     window.location.href = 'login.html';
                 }).catch((error) => {
                     console.error('dashboard_app.js: Erro ao terminar a sessão:', error);
-                    alert('Erro ao terminar a sessão: ' + error.message);
+                    showToast('Erro ao terminar a sessão: ' + error.message, 'error');
                 });
             } else {
                 console.error("dashboard_app.js: Erro: firebase.auth() ou auth.signOut não está disponível para o logout.");
-                alert("Erro crítico ao tentar terminar a sessão. Contacte o suporte.");
+                showToast("Erro crítico ao tentar terminar a sessão. Contacte o suporte.", "error");
             }
         });
     } else {

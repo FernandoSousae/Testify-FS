@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             console.log("URLs das fotos do calçado obtidas:", urlsFotos);
                         } catch (error) {
                             console.error("Erro durante o upload de uma ou mais fotos do calçado: ", error);
-                            alert("Erro ao fazer upload das fotos do calçado. O teste não foi salvo.");
+                            showToast("Erro ao fazer upload das fotos do calçado. O teste não foi salvo.", "error");
                             submitButton.disabled = false;
                             submitButton.textContent = 'Salvar Teste de Calçado';
                             return;
@@ -111,12 +111,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     db.collection("TestesCalcadoPronto").add(testeDataCp) // Nova coleção
                         .then((docRef) => {
                             console.log("Teste de Calçado Pronto salvo com ID: ", docRef.id);
-                            alert("Teste de Calçado Pronto salvo com sucesso!");
+                            showToast("Teste de Calçado Pronto salvo com sucesso!", "success");
                             formCadastrarTesteCp.reset();
                         })
                         .catch((error) => {
                             console.error("Erro ao salvar o teste de calçado pronto no Firestore: ", error);
-                            alert("Erro ao salvar os dados do teste de calçado pronto. Verifique o console.");
+                            showToast("Erro ao salvar os dados do teste de calçado pronto: " + error.message, "error");
                         })
                         .finally(() => {
                             submitButton.disabled = false;

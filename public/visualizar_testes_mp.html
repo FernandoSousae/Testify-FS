@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizar Testes de Matéria-Prima - App Testes Ferracini</title>
-    <link rel="stylesheet" href="dashboard_style.css">
-    <link rel="stylesheet" href="global_styles.css">
+    <link rel="stylesheet" href="dashboard_style.css"> <!-- Assumindo que este arquivo existe e está correto -->
+    <link rel="stylesheet" href="global_style.css"> <!-- Para toasts -->
     <style>
-        /* Estilos específicos para a lista de testes podem vir aqui ou em um CSS dedicado */
         .test-list-container {
             max-width: 900px;
             margin: 30px auto;
@@ -20,17 +19,10 @@
             text-align: center;
             margin-bottom: 25px;
         }
-        #listaTestesMp { /* Onde os testes serão exibidos */
-            list-style-type: none;
-            padding: 0;
-        }
-        /* Mais estilos para os itens da lista virão depois */
-        /* Adicione ao <style> em visualizar_testes_mp.html */
         #listaTestesMp ul {
             list-style-type: none;
             padding: 0;
         }
-
         .item-teste {
             background-color: #f9f9f9;
             border: 1px solid #eee;
@@ -39,48 +31,128 @@
             margin-bottom: 15px;
             text-align: left;
         }
-
         .item-teste h3 {
             margin-top: 0;
             color: #333;
         }
-
         .item-teste p {
             margin: 5px 0;
             line-height: 1.6;
         }
-
         .item-teste strong {
             color: #555;
         }
-
         .fotos-container img {
+            max-width: 100px;
+            max-height: 100px;
+            margin: 5px;
             border: 1px solid #ddd;
             border-radius: 4px;
             padding: 3px;
             background-color: white;
+            cursor: pointer;
         }
-
         .item-teste hr {
             border: 0;
             border-top: 1px solid #eee;
             margin-top: 15px;
+            clear: both; 
+        }
+        .acoes-teste { 
+            margin-top: 10px;
+            text-align: right; 
+        }
+        .acoes-teste button {
+            margin-left: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: none;
+            font-size: 0.9em;
+        }
+        .edit-test-btn { /* Botão Editar Teste */
+            background-color: #ffc107; 
+            color: #212529;
+        }
+        .delete-test-btn { /* Botão Excluir Teste */
+            background-color: #dc3545; 
+            color: white;
+        }
+
+        /* Estilos para o Modal (genérico, usado por ambos os modais) */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px; /* Pode ser ajustado por modal específico se necessário */
+            border-radius: 8px;
+            position: relative;
+        }
+        .close-modal-button { 
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            cursor: pointer;
+        }
+        .close-modal-button:hover,
+        .close-modal-button:focus {
+            color: black;
+            text-decoration: none;
+        }
+        /* Estilos específicos para o formulário DENTRO do modal de edição */
+        #formEdicaoTesteMp div { 
+            margin-bottom: 15px;
+        }
+        #formEdicaoTesteMp label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        #formEdicaoTesteMp input[type="date"],
+        #formEdicaoTesteMp select,
+        #formEdicaoTesteMp textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        #formEdicaoTesteMp textarea {
+            resize: vertical;
         }
     </style>
 </head>
 <body>
     <header>
         <h1><a href="dashboard.html" style="color:white; text-decoration:none;">App Testes Ferracini</a></h1>
-        <div id="userInfo">Carregando...</div>
+        <div id="userInfo">A carregar...</div>
         <button id="logoutButton">Sair</button>
     </header>
 
     <main>
         <div class="test-list-container">
-            <h2>Testes de Matéria-Prima Cadastrados</h2>
+            <h2>Testes de Matéria-Prima Registados</h2>
             <div id="listaTestesMp">
-                <p>Carregando testes...</p>
-                </div>
+                <p>A carregar testes...</p>
+                <!-- Os testes serão listados aqui pelo JavaScript, incluindo botões de Editar e Excluir -->
+            </div>
         </div>
     </main>
 
@@ -88,29 +160,102 @@
         <p>&copy; 2025 App Testes Ferracini</p>
     </footer>
 
+    <!-- Modal para Imagem Ampliada -->
+    <div id="imageModal" class="modal">
+        <span class="close-modal-button" id="closeImageModalBtn">&times;</span>
+        <img class="modal-content" id="modalImage" style="width: auto; max-width: 80%; max-height: 80vh;"> <!-- Estilo inline para imagem do modal -->
+        <div id="caption"></div>
+    </div>
+
+    <!-- Modal de Edição de Teste de Matéria-Prima -->
+    <div id="modalEdicaoTesteMp" class="modal">
+        <div class="modal-content">
+            <span class="close-modal-button" id="botaoFecharModalEdicaoTesteMp">&times;</span>
+            <h3>Editar Teste de Matéria-Prima</h3>
+            <form id="formEdicaoTesteMp">
+                <input type="hidden" id="hiddenTesteMpIdEdicao">
+                <div>
+                    <label for="dataTesteEdicao">Data do Teste:</label>
+                    <input type="date" id="dataTesteEdicao" required>
+                </div>
+                <div>
+                    <label for="resultadoTesteEdicao">Resultado:</label>
+                    <select id="resultadoTesteEdicao" required>
+                        <option value="">Selecione o Resultado...</option>
+                        <option value="Aprovado">Aprovado</option>
+                        <option value="Reprovado">Reprovado</option>
+                        <option value="Em Análise">Em Análise</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="observacoesTesteEdicao">Observações:</label>
+                    <textarea id="observacoesTesteEdicao" rows="4"></textarea>
+                </div>
+                <button type="submit" class="submit-button" style="background-color: #28a745;">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- HTML do Toast Notification -->
     <div id="toastNotification" class="toast">
         <span id="toastMessage"></span>
     </div>
 
+    <!-- Scripts -->
     <script src="firebase-config.js"></script>
+    <script src="utils.js"></script> 
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js"></script> <!-- SDK do Storage é importante para excluir fotos -->
+    
     <script>
-      // PASSO 3: Inicializa o Firebase.
-      // A variável firebaseConfig já foi definida globalmente pelo firebase-config.js
-      firebase.initializeApp(firebaseConfig);
-      console.log("Firebase SDK inicializado em visualizar_testes_mp.html!");
+      // Função para inicializar o Firebase e carregar o script da página
+      function inicializarAppVisualizacaoTestesMp() {
+        if (typeof firebaseConfig !== 'undefined') {
+          if (firebase.apps.length === 0) { // Inicializar apenas se não houver app [DEFAULT]
+            firebase.initializeApp(firebaseConfig);
+            console.log("Firebase SDK inicializado em visualizar_testes_mp.html!");
+          } else {
+            console.log("Firebase SDK já estava inicializado em visualizar_testes_mp.html.");
+          }
+          
+          // Carrega o script específico da página APÓS utils.js estar carregado (assumindo que utils.js é carregado de forma síncrona antes deste bloco)
+          var scriptPagina = document.createElement('script');
+          scriptPagina.src = 'visualizar_testes_mp_app.js';
+          document.body.appendChild(scriptPagina);
+
+          // Listener para o modal de imagem (pode ser movido para visualizar_testes_mp_app.js se preferir)
+          const imageModalLocal = document.getElementById("imageModal"); // Usar var local para evitar conflito de escopo
+          const closeImageModalBtnLocal = document.getElementById("closeImageModalBtn"); 
+          if (imageModalLocal && closeImageModalBtnLocal) {
+              closeImageModalBtnLocal.onclick = function() { imageModalLocal.style.display = "none"; }
+              imageModalLocal.onclick = function(event) {
+                  if (event.target === imageModalLocal) { imageModalLocal.style.display = "none"; }
+              }
+          } else {
+              console.warn("Elementos do modal de imagem não encontrados para configurar fechamento nesta página.");
+          }
+
+        } else {
+          console.error("ERRO FATAL: firebaseConfig não está definido. Verifique 'firebase-config.js'.");
+          const mainContentError = document.querySelector('main .test-list-container'); 
+          if (mainContentError) {
+              mainContentError.innerHTML = '<p style="color:red; text-align:center;">Erro crítico na configuração.</p>';
+          }
+        }
+      }
+
+      // Garante que utils.js (e showToast) e Firebase SDK estejam disponíveis antes de inicializar o app da página
+      function verificarDependenciasEInicializar() {
+        if (typeof showToast === 'function' && typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
+            inicializarAppVisualizacaoTestesMp();
+        } else {
+            console.warn("Dependências (utils.js ou Firebase SDK) ainda não carregadas, a aguardar um momento...");
+            setTimeout(verificarDependenciasEInicializar, 300); // Tenta novamente após 300ms
+        }
+      }
+      verificarDependenciasEInicializar(); // Inicia a verificação
     </script>
-
-    <script src="visualizar_testes_mp_app.js"></script>
-
-    <div id="imageModal" class="modal">
-        <span class="close-modal-button">&times;</span>
-        <img class="modal-content" id="modalImage">
-        <div id="caption"></div>
-    </div>
-
-    <script src="utils.js"></script>
 </body>
 </html>

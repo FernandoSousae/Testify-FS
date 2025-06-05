@@ -49,7 +49,7 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
     function abrirModalEdicaoTipoTeste(id, nome, descricao, categoria) {
         if (!modalEdicaoTipoTeste || !formEdicaoTipoTeste || !inputNomeEdicao || !inputDescricaoEdicao || !selectCategoriaEdicao || !hiddenTipoTesteIdEdicao) {
             console.error("Erro fatal: Elementos do modal de edição não encontrados ao tentar abrir.");
-            alert("Erro ao abrir formulário de edição.");
+            showToast("Erro ao abrir formulário de edição.", "error");
             return;
         }
         hiddenTipoTesteIdEdicao.value = id;
@@ -76,7 +76,7 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
         const categoria = selectCategoriaEdicao.value;
 
         if (!nome || !categoria) {
-            alert("O nome do tipo de teste e a categoria aplicável são obrigatórios.");
+            showToast("O nome do tipo de teste e a categoria aplicável são obrigatórios.", "error");
             return;
         }
         
@@ -93,13 +93,13 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
         })
         .then(() => {
             console.log("Tipo de teste atualizado com sucesso!");
-            alert("Tipo de teste atualizado com sucesso!");
+            showToast("Tipo de teste atualizado com sucesso!", "success");
             fecharModalEdicaoTipoTeste();
             carregarListaTiposTeste();
         })
         .catch((error) => {
             console.error("Erro ao atualizar tipo de teste:", error);
-            alert("Erro ao atualizar tipo de teste. Detalhes no console.");
+            showToast("Erro ao atualizar tipo de teste. Detalhes no console.", "error");
         })
         .finally(() => {
             if(submitButton) {
@@ -115,12 +115,12 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
             db.collection("TiposTeste").doc(id).delete()
                 .then(() => {
                     console.log("Tipo de teste excluído com sucesso!");
-                    alert(`Tipo de teste "${nome}" excluído com sucesso.`);
+                    showToast(`Tipo de teste "${nome}" excluído com sucesso.`, "success");
                     carregarListaTiposTeste();
                 })
                 .catch((error) => {
                     console.error("Erro ao excluir tipo de teste:", error);
-                    alert("Erro ao excluir tipo de teste. Detalhes no console.");
+                    showToast("Erro ao excluir tipo de teste. Detalhes no console.", "error");
                 });
         }
     }
@@ -194,7 +194,7 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
             const categoria = document.getElementById('categoriaAplicavel').value;
 
             if (!nome || !categoria) {
-                alert("O nome do tipo de teste e a categoria aplicável são obrigatórios.");
+                showToast("O nome do tipo de teste e a categoria aplicável são obrigatórios.", "error");
                 return;
             }
 
@@ -210,13 +210,13 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
             })
             .then((docRef) => {
                 console.log("Novo tipo de teste adicionado com ID:", docRef.id);
-                alert("Novo tipo de teste adicionado com sucesso!");
+                showToast("Novo tipo de teste adicionado com sucesso!", "success");
                 formAdicionarTipoTeste.reset();
                 carregarListaTiposTeste();
             })
             .catch((error) => {
                 console.error("Erro ao adicionar novo tipo de teste:", error);
-                alert("Erro ao adicionar tipo de teste. Detalhes no console.");
+                showToast("Erro ao adicionar tipo de teste. Detalhes no console.", "error");
             })
             .finally(() => {
                 submitButton.disabled = false;

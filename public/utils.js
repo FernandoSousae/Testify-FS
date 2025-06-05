@@ -1,5 +1,5 @@
 // Função para exibir notificações toast
-function showToast(message, type = 'info', duration = 3000) {
+function showToast(message, type = 'info', duration = 5000) {
     const toastElement = document.getElementById('toastNotification');
     const toastMessageElement = document.getElementById('toastMessage');
 

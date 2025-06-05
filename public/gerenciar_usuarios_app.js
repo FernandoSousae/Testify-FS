@@ -53,19 +53,19 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
 
         // Não podemos excluir o próprio administrador logado desta forma simples
         if (auth.currentUser && auth.currentUser.uid === userId) {
-            alert("Não é possível excluir a sua própria conta de administrador através desta interface.");
+            showToast("Não é possível excluir a sua própria conta de administrador através desta interface.", "error");
             return;
         }
 
         db.collection("Usuarios").doc(userId).delete()
             .then(() => {
                 console.log("Documento do utilizador excluído do Firestore com sucesso!");
-                alert(`Utilizador ${userEmail} excluído da base de dados da aplicação.\n\nNota: A conta de autenticação deste utilizador ainda existe. Para exclusão completa do sistema de autenticação, utilize o console do Firebase ou implemente uma Cloud Function com privilégios de administrador.`);
+                showToast(`Utilizador ${userEmail} excluído da base de dados da aplicação. A conta de autenticação ainda existe.`, "success");
                 carregarListaUsuarios(); // Recarrega a lista para refletir a exclusão
             })
             .catch((error) => {
                 console.error("Erro ao excluir documento do utilizador do Firestore:", error);
-                alert("Erro ao excluir o utilizador da base de dados da aplicação. Detalhes no console.");
+                showToast("Erro ao excluir o utilizador da base de dados da aplicação. Detalhes no console.", "error");
             });
     }
 
@@ -142,7 +142,7 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
 
         if (!modalEdicaoUsuario || !formEdicaoUsuario || !inputNomeEdicao || !inputEmailEdicao || !selectTipoEdicao || !hiddenUserIdEdicao) {
             console.error("Um ou mais elementos do modal de edição não foram encontrados. Verifique o HTML do modal.");
-            alert("Erro ao abrir o formulário de edição. Verifique o console.");
+            showToast("Erro ao abrir o formulário de edição. Verifique o console.", "error");
             return;
         }
 
@@ -179,13 +179,13 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
         })
         .then(() => {
             console.log("Dados do utilizador atualizados com sucesso no Firestore!");
-            alert("Dados do utilizador atualizados com sucesso!");
+            showToast("Dados do utilizador atualizados com sucesso!", "success");
             fecharModalEdicao();
             carregarListaUsuarios(); 
         })
         .catch((error) => {
             console.error("Erro ao atualizar dados do utilizador:", error);
-            alert("Erro ao atualizar os dados do utilizador. Detalhes no console.");
+            showToast("Erro ao atualizar os dados do utilizador. Detalhes no console.", "error");
         })
         .finally(() => {
             if(submitButton) {
@@ -231,7 +231,7 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
                 })
                 .then(() => {
                     console.log("Documento do utilizador salvo no Firestore.");
-                    alert("Utilizador adicionado com sucesso!");
+                    showToast("Utilizador adicionado com sucesso!", "success");
                     formAdicionarUsuario.reset();
                     carregarListaUsuarios();
                 })
@@ -245,7 +245,7 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
                     } else if (error.code === 'auth/weak-password') {
                         mensagemErro = "A senha é muito fraca. Use pelo menos 6 caracteres.";
                     }
-                    alert(mensagemErro + "\nDetalhes: " + error.message);
+                    showToast(mensagemErro + " Detalhes: " + error.message, "error");
                 })
                 .finally(() => {
                     submitButton.disabled = false;
@@ -331,11 +331,11 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
                     window.location.href = 'login.html';
                 }).catch((error) => {
                     console.error('gerenciar_usuarios_app.js: Erro ao terminar a sessão:', error);
-                    alert('Erro ao terminar a sessão: ' + error.message);
+                    showToast('Erro ao terminar a sessão: ' + error.message, "error");
                 });
             } else {
                 console.error("gerenciar_usuarios_app.js: Erro: firebase.auth() ou auth.signOut não está disponível para o logout.");
-                alert("Erro crítico ao tentar terminar a sessão. Contacte o suporte.");
+                showToast("Erro crítico ao tentar terminar a sessão. Contacte o suporte.", "error");
             }
         });
     } else {

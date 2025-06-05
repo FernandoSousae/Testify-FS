@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     // Adicione mais tratamentos de erro conforme necessário
 
-                    alert(mensagemErroUsuario);
+                    showToast(mensagemErroUsuario, "error");
                 });
         });
     } else {
