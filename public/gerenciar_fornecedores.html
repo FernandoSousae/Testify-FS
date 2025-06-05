@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Fornecedores - App Testes Ferracini</title>
+    <link rel="stylesheet" href="dashboard_style.css">
+    <link rel="stylesheet" href="global_style.css">
+    <link rel="stylesheet" href="admin_style.css"> 
+</head>
+<body>
+    <header>
+        <h1><a href="dashboard.html" style="color:white; text-decoration:none;">App Testes Ferracini</a></h1>
+        <div id="userInfo">A carregar...</div>
+        <button id="logoutButton">Sair</button>
+    </header>
+
+    <main>
+        <div class="admin-container">
+            <h2>Gerenciar Fornecedores</h2>
+
+            <div class="add-form-container">
+                <h3>Adicionar Novo Fornecedor</h3>
+                <form id="formAdicionarFornecedor">
+                    <div>
+                        <label for="nomeFornecedor">Nome / Razão Social:</label>
+                        <input type="text" id="nomeFornecedor" required>
+                    </div>
+                    <div>
+                        <label for="cnpjFornecedor">CNPJ / CPF (Opcional):</label>
+                        <input type="text" id="cnpjFornecedor">
+                    </div>
+                    <div>
+                        <label for="contatoFornecedor">Nome do Contato (Opcional):</label>
+                        <input type="text" id="contatoFornecedor">
+                    </div>
+                     <div>
+                        <label for="telefoneFornecedor">Telefone (Opcional):</label>
+                        <input type="text" id="telefoneFornecedor">
+                    </div>
+                    <div>
+                        <label for="emailFornecedor">Email (Opcional):</label>
+                        <input type="email" id="emailFornecedor">
+                    </div>
+                    <button type="submit" class="submit-button">Adicionar Fornecedor</button>
+                </form>
+            </div>
+
+            <div class="list-container">
+                <h3>Fornecedores Cadastrados</h3>
+                <div id="listaFornecedores">
+                    <p>A carregar fornecedores...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 App Testes Ferracini</p>
+    </footer>
+
+    <div id="modalEdicaoFornecedor" class="modal">
+        <div class="modal-content">
+            <span class="close-modal-button" id="botaoFecharModalEdicao">&times;</span>
+            <h3>Editar Fornecedor</h3>
+            <form id="formEdicaoFornecedor">
+                <input type="hidden" id="hiddenFornecedorIdEdicao">
+                <div>
+                    <label for="nomeFornecedorEdicao">Nome / Razão Social:</label>
+                    <input type="text" id="nomeFornecedorEdicao" required>
+                </div>
+                <div>
+                    <label for="cnpjFornecedorEdicao">CNPJ / CPF (Opcional):</label>
+                    <input type="text" id="cnpjFornecedorEdicao">
+                </div>
+                <div>
+                    <label for="contatoFornecedorEdicao">Nome do Contato (Opcional):</label>
+                    <input type="text" id="contatoFornecedorEdicao">
+                </div>
+                <div>
+                    <label for="telefoneFornecedorEdicao">Telefone (Opcional):</label>
+                    <input type="text" id="telefoneFornecedorEdicao">
+                </div>
+                <div>
+                    <label for="emailFornecedorEdicao">Email (Opcional):</label>
+                    <input type="email" id="emailFornecedorEdicao">
+                </div>
+                <button type="submit" class="submit-button" style="background-color: #28a745;">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script src="firebase-config.js"></script>
+    <script src="utils.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Lógica de carregamento SIMPLIFICADA e ROBUSTA
+        if (typeof firebaseConfig !== 'undefined' && firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        var scriptPagina = document.createElement('script');
+        scriptPagina.src = 'gerenciar_fornecedores_app.js';
+        document.body.appendChild(scriptPagina);
+    </script>
+</body>
+</html>

@@ -167,17 +167,23 @@
     </div>
 
     <script src="firebase-config.js"></script>
+    <script src="utils.js"></script> 
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js"></script> <script>
-      // SUA CONFIGURAÇÃO DO FIREBASE (a mesma)
-      // firebaseConfig já vem do firebase-config.js
-      firebase.initializeApp(firebaseConfig);
-      console.log("Firebase SDK inicializado em cadastrar_teste_cp.html!");
-    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js"></script>
+    
+    <script>
+        // Lógica de carregamento SIMPLIFICADA e ROBUSTA
+        // 1. Inicializa o Firebase (apenas se não estiver inicializado)
+        if (typeof firebaseConfig !== 'undefined' && firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
 
-    <script src="utils.js"></script>
-    <script src="cadastrar_teste_cp_app.js"></script>
+        // 2. Carrega dinamicamente o script principal desta página
+        var scriptPagina = document.createElement('script');
+        scriptPagina.src = 'cadastrar_teste_cp_app.js';
+        document.body.appendChild(scriptPagina);
+    </script>
 </body>
 </html>
