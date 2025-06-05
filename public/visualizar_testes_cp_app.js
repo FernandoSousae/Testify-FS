@@ -41,88 +41,89 @@
     async function carregarEExibirTestesCp() {
         if (!listaTestesCpDiv) {
             console.error("Elemento #listaTestesCp não encontrado!");
-            return;
+        return;
         }
         listaTestesCpDiv.innerHTML = '<p>A carregar testes...</p>';
 
         try {
-            const querySnapshot = await db.collection("TestesCalcadoPronto")
-                .orderBy("data_cadastro", "desc")
-                .get();
+        // ETAPA DE OTIMIZAÇÃO: Buscar Tipos de Teste UMA ÚNICA VEZ
+        const tiposTesteSnapshot = await db.collection("TiposTeste").get();
+        const tiposTesteMap = new Map();
+        tiposTesteSnapshot.forEach(doc => {
+            tiposTesteMap.set(doc.id, doc.data().nome_tipo_teste);
+        });
 
-            if (querySnapshot.empty) {
-                listaTestesCpDiv.innerHTML = '<p>Nenhum teste de calçado pronto encontrado.</p>';
-                return;
+        // BUSCA PRINCIPAL: Agora busca apenas os testes de calçado pronto
+        const querySnapshot = await db.collection("TestesCalcadoPronto")
+            .orderBy("data_cadastro", "desc")
+            .get();
+
+        if (querySnapshot.empty) {
+            listaTestesCpDiv.innerHTML = '<p>Nenhum teste de calçado pronto encontrado.</p>';
+            return;
+        }
+
+        let htmlTestesItens = [];
+        for (const doc of querySnapshot.docs) {
+            const teste = doc.data();
+            const idTeste = doc.id;
+
+            // Consulta RÁPIDA no mapa em memória, sem acessar o banco de dados aqui
+            const nomeTipoTeste = tiposTesteMap.get(teste.id_tipo_teste) || `ID Tipo: ${teste.id_tipo_teste} (não encontrado)`;
+
+            let fotosHtml = '<p>Sem fotos.</p>';
+            if (teste.fotos_calcado_urls && teste.fotos_calcado_urls.length > 0) {
+                fotosHtml = '<div class="fotos-container">';
+                teste.fotos_calcado_urls.forEach(url => {
+                    fotosHtml += `<img src="${url}" alt="Foto do calçado" class="thumbnail-image" data-src="${url}">`;
+                });
+                fotosHtml += '</div>';
             }
 
-            let htmlTestesItens = [];
-
-            for (const doc of querySnapshot.docs) {
-                const teste = doc.data();
-                const idTeste = doc.id;
-
-                let nomeTipoTeste = teste.id_tipo_teste; // Predefinição para o ID
-                if (teste.id_tipo_teste) {
-                    try {
-                        const ttDoc = await db.collection("TiposTeste").doc(teste.id_tipo_teste).get();
-                        if (ttDoc.exists) {
-                            nomeTipoTeste = ttDoc.data().nome_tipo_teste;
-                        } else {
-                            nomeTipoTeste = `Tipo de Teste ID: ${teste.id_tipo_teste} (não encontrado)`;
-                        }
-                    } catch (error) {
-                        console.error("Erro ao buscar tipo de teste ID:", teste.id_tipo_teste, error);
-                        nomeTipoTeste = `Erro ao buscar Tipo Teste ID: ${teste.id_tipo_teste}`;
-                    }
-                }
-
-                let fotosHtml = '<p>Sem fotos.</p>';
-                if (teste.fotos_calcado_urls && teste.fotos_calcado_urls.length > 0) {
-                    fotosHtml = '<div class="fotos-container">';
-                    teste.fotos_calcado_urls.forEach(url => {
-                        // LINHA CORRIGIDA:
-                        fotosHtml += `<img src="${url}" alt="Foto do calçado" class="thumbnail-image" data-src="${url}" style="max-width: 100px; max-height: 100px; margin: 5px;">`;
-                    });
-                    fotosHtml += '</div>';
-                }
-
-                htmlTestesItens.push(`
-                    <li class="item-teste" data-id="${idTeste}">
-                        <h3>Ref: ${teste.referencia_calcado || 'N/A'} (Linha: ${teste.linha_calcado || 'N/A'})</h3>
-                        <p><strong>Sub-categoria:</strong> ${teste.sub_categoria || 'N/A'}</p>
-                        <p><strong>ID do Teste no Sistema:</strong> ${idTeste}</p>
-                        <p><strong>Tipo de Teste:</strong> ${nomeTipoTeste}</p>
-                        <p><strong>Data Início:</strong> ${formatarTimestamp(teste.data_inicio_teste)}</p>
-                        <p><strong>Data Fim:</strong> ${teste.data_fim_teste ? formatarTimestamp(teste.data_fim_teste) : 'N/A'}</p>
-                        <p><strong>Resultado:</strong> ${teste.resultado || 'N/A'}</p>
-                        <p><strong>Requisitante:</strong> ${teste.requisitante_teste || 'N/A'}</p>
-                        <p><strong>Plano de Produção:</strong> ${teste.plano_producao || 'N/A'}</p>
-                        <p><strong>Fábrica:</strong> ${teste.fabrica_producao || 'N/A'}</p>
-                        <p><strong>Materiais Avaliados:</strong> ${teste.materiais_avaliados || 'Nenhum'}</p>
-                        <p><strong>Observações Gerais:</strong> ${teste.observacoes_gerais || 'Nenhuma'}</p>
-                        <p><strong>Responsável:</strong> ${teste.responsavel_teste_email || 'N/A'}</p>
-                        <p><strong>Data de Cadastro:</strong> ${formatarTimestamp(teste.data_cadastro)}</p>
-                        <div><strong>Fotos:</strong> ${fotosHtml}</div>
-                        <hr>
-                    </li>
+            // Adicionamos a div .acoes-teste com os botões de Editar e Excluir
+            htmlTestesItens.push(`
+                <li class="item-teste" data-id="${idTeste}">
+                    <h3>Ref: ${teste.referencia_calcado || 'N/A'} (Linha: ${teste.linha_calcado || 'N/A'})</h3>
+                    <p><strong>Sub-categoria:</strong> ${teste.sub_categoria || 'N/A'}</p>
+                    <p><strong>Tipo de Teste:</strong> ${nomeTipoTeste}</p>
+                    <p><strong>Data Início:</strong> ${formatarTimestamp(teste.data_inicio_teste)}</p>
+                    <p><strong>Data Fim:</strong> ${teste.data_fim_teste ? formatarTimestamp(teste.data_fim_teste) : 'Em andamento'}</p>
+                    <p><strong>Resultado:</strong> ${teste.resultado || 'N/A'}</p>
+                    <p><strong>Responsável:</strong> ${teste.responsavel_teste_email || 'N/A'}</p>
+                    <div><strong>Fotos:</strong> ${fotosHtml}</div>
+                    <div class="acoes-teste">
+                        <button class="edit-test-cp-btn" data-id="${idTeste}">Editar</button>
+                        <button class="delete-test-cp-btn" data-id="${idTeste}">Excluir</button>
+                    </div>
+                </li>
                 `);
             }
-            listaTestesCpDiv.innerHTML = `<ul>${htmlTestesItens.join('')}</ul>`;
+        listaTestesCpDiv.innerHTML = `<ul>${htmlTestesItens.join('')}</ul>`;
 
-            // Após adicionar o HTML ao DOM, adicionamos os event listeners às imagens
-            document.querySelectorAll('.thumbnail-image').forEach(img => {
-                img.onclick = function() {
-                    if (modal && modalImg && captionText) {
-                        modal.style.display = "block";
-                        modalImg.src = this.dataset.src; // Usamos data-src para garantir que é o URL original
-                        captionText.innerHTML = this.alt; // Opcional: usar o alt como legenda
-                    }
-                }
+        // Anexar os event listeners para as imagens e os novos botões
+        document.querySelectorAll('.thumbnail-image').forEach(img => {
+            img.onclick = function() { /* ... sua lógica de modal de imagem ... */ }
+        });
+
+        document.querySelectorAll('.edit-test-cp-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                // A lógica para abrir o modal de edição virá aqui na próxima etapa
+                console.log("Clicou em Editar teste ID:", this.dataset.id);
+                alert("Funcionalidade de Editar a ser implementada!");
             });
+        });
+
+        document.querySelectorAll('.delete-test-cp-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                // A lógica para excluir o teste virá aqui na próxima etapa
+                console.log("Clicou em Excluir teste ID:", this.dataset.id);
+                alert("Funcionalidade de Excluir a ser implementada!");
+            });
+        });
 
         } catch (error) {
             console.error("Erro ao buscar testes de calçado pronto: ", error);
-            listaTestesCpDiv.innerHTML = '<p>Erro ao carregar testes. Tente novamente mais tarde.</p>';
+            listaTestesCpDiv.innerHTML = '<p style="color:red;">Erro ao carregar testes. Tente novamente mais tarde.</p>';
         }
     }
 
