@@ -1,5 +1,5 @@
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("visualizar_testes_mp_app.js carregado e DOM pronto!");
+
+    console.log("DEPURAÇÃO: 'visualizar_testes_mp_app.js' INICIOU A EXECUÇÃO (sem DOMContentLoaded).");
 
     const db = firebase.firestore();
     const storage = firebase.storage(); // Adicionamos referência ao Storage para excluir fotos
@@ -54,36 +54,59 @@ document.addEventListener('DOMContentLoaded', function() {
         return '';
     }
 
-    // Função para abrir e popular o modal de edição de Teste de Matéria-Prima
-    function abrirModalEdicaoTesteMp(testeId, dadosTeste) {
-        // Inicializar referências aos elementos do modal de EDIÇÃO aqui
+    async function abrirModalEdicaoTesteMp(testeId, dadosTeste) {
+        // Busca os elementos do modal
         modalEdicaoTesteMp = document.getElementById('modalEdicaoTesteMp');
         formEdicaoTesteMp = document.getElementById('formEdicaoTesteMp');
-        inputDataTesteEdicao = document.getElementById('dataTesteEdicao');
-        selectResultadoEdicao = document.getElementById('resultadoTesteEdicao');
-        textareaObservacoesEdicao = document.getElementById('observacoesTesteEdicao');
         hiddenTesteMpIdEdicao = document.getElementById('hiddenTesteMpIdEdicao');
         
-        if (!modalEdicaoTesteMp || !formEdicaoTesteMp || !inputDataTesteEdicao || !selectResultadoEdicao || !textareaObservacoesEdicao || !hiddenTesteMpIdEdicao) {
-            console.error("Um ou mais elementos do modal de edição de Teste MP não foram encontrados. Verifique o HTML do modal.");
-            // Assumindo que showToast existe e está carregado (do utils.js)
-            if (typeof showToast === 'function') {
-                showToast("Erro ao abrir formulário de edição. Verifique o console.", "error");
-            } else {
-                alert("Erro ao abrir formulário de edição. Verifique o console.");
-            }
+        // CAMPOS NOVOS
+        const selectMateriaPrimaEdicao = document.getElementById('materiaPrimaEdicao');
+        const selectTipoTesteEdicao = document.getElementById('tipoTesteEdicao');
+
+        // CAMPOS ANTIGOS
+        const inputDataTesteEdicao = document.getElementById('dataTesteEdicao');
+        const selectResultadoEdicao = document.getElementById('resultadoTesteEdicao');
+        const textareaObservacoesEdicao = document.getElementById('observacoesTesteEdicao');
+
+        if (!modalEdicaoTesteMp || !selectMateriaPrimaEdicao || !selectTipoTesteEdicao) {
+            console.error("Elementos essenciais do modal de edição não encontrados.");
+            showToast("Erro ao abrir formulário de edição.", "error");
             return;
         }
 
-        console.log("Abrindo modal para editar Teste MP ID:", testeId, "Dados:", dadosTeste);
+        console.log("Abrindo modal para editar Teste MP ID:", testeId);
+        
+        // 1. Limpar e popular os dropdowns de Matéria-Prima e Tipo de Teste
+        selectMateriaPrimaEdicao.innerHTML = '<option value="">A carregar MP...</option>';
+        selectTipoTesteEdicao.innerHTML = '<option value="">A carregar Tipos...</option>';
+        
+        const [materiasPrimasSnapshot, tiposTesteSnapshot] = await Promise.all([
+            db.collection("MateriasPrimas").orderBy("descricao_mp").get(),
+            db.collection("TiposTeste").where("categoria_aplicavel", "in", ["Matéria-Prima", "Ambos"]).orderBy("nome_tipo_teste").get()
+        ]);
+
+        selectMateriaPrimaEdicao.innerHTML = '<option value="">Selecione...</option>';
+        materiasPrimasSnapshot.forEach(doc => {
+            const data = doc.data();
+            const nomeCompleto = data.descricao_mp + (data.codigo_interno_mp ? ` (${data.codigo_interno_mp})` : '');
+            selectMateriaPrimaEdicao.innerHTML += `<option value="${doc.id}">${nomeCompleto}</option>`;
+        });
+
+        selectTipoTesteEdicao.innerHTML = '<option value="">Selecione...</option>';
+        tiposTesteSnapshot.forEach(doc => {
+            selectTipoTesteEdicao.innerHTML += `<option value="${doc.id}">${doc.data().nome_tipo_teste}</option>`;
+        });
+
+        // 2. Preencher TODOS os campos do formulário com os dados do teste atual
         hiddenTesteMpIdEdicao.value = testeId;
+        selectMateriaPrimaEdicao.value = dadosTeste.id_materia_prima; // Pré-seleciona a matéria-prima
+        selectTipoTesteEdicao.value = dadosTeste.id_tipo_teste;       // Pré-seleciona o tipo de teste
         inputDataTesteEdicao.value = formatarParaInputDate(dadosTeste.data_teste);
         selectResultadoEdicao.value = dadosTeste.resultado;
         textareaObservacoesEdicao.value = dadosTeste.observacoes || '';
-        
-        // Lógica para exibir fotos existentes e permitir adicionar/remover fotos seria mais complexa e viria aqui.
-        // Por simplicidade inicial, não vamos permitir editar fotos diretamente neste modal.
 
+        // 3. Exibir o modal
         modalEdicaoTesteMp.style.display = 'block';
     }
 
@@ -94,26 +117,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Função para salvar as alterações do Teste de Matéria-Prima
     async function salvarEdicaoTesteMp() {
-        // Re-obter referências caso o DOM tenha sido modificado ou para garantir
-        // Estas referências já devem ter sido inicializadas em abrirModalEdicaoTesteMp ou no onAuthStateChanged
-        if (!formEdicaoTesteMp || !hiddenTesteMpIdEdicao || !inputDataTesteEdicao || !selectResultadoEdicao || !textareaObservacoesEdicao) {
-            console.error("Formulário de edição ou seus campos não encontrados ao tentar salvar.");
-            if (typeof showToast === 'function') showToast("Erro ao salvar: formulário de edição não encontrado.", "error");
-            else alert("Erro ao salvar: formulário de edição não encontrado.");
-            return;
-        }
-
-        const testeId = hiddenTesteMpIdEdicao.value;
+        const testeId = document.getElementById('hiddenTesteMpIdEdicao').value;
+        
+        // Captura os valores de TODOS os campos, incluindo os novos
         const novosDados = {
-            data_teste: firebase.firestore.Timestamp.fromDate(new Date(inputDataTesteEdicao.value)),
-            resultado: selectResultadoEdicao.value,
-            observacoes: textareaObservacoesEdicao.value,
+            id_materia_prima: document.getElementById('materiaPrimaEdicao').value,
+            id_tipo_teste: document.getElementById('tipoTesteEdicao').value,
+            data_teste: firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('dataTesteEdicao').value)),
+            resultado: document.getElementById('resultadoTesteEdicao').value,
+            observacoes: document.getElementById('observacoesTesteEdicao').value,
             data_ultima_modificacao: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        const submitButton = formEdicaoTesteMp.querySelector('button[type="submit"]');
+        const submitButton = document.getElementById('formEdicaoTesteMp').querySelector('button[type="submit"]');
         if(submitButton) {
             submitButton.disabled = true;
             submitButton.textContent = 'A Salvar...';
@@ -121,15 +138,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             await db.collection("TestesMateriaPrima").doc(testeId).update(novosDados);
-            console.log("Teste de Matéria-Prima atualizado com sucesso!");
-            if (typeof showToast === 'function') showToast("Teste atualizado com sucesso!", "success");
-            else alert("Teste atualizado com sucesso!");
+            showToast("Teste atualizado com sucesso!", "success");
             fecharModalEdicaoTesteMp();
-            carregarEExibirTestes(); 
+            carregarEExibirTestes(); // Recarrega a lista para mostrar os dados atualizados
         } catch (error) {
-            console.error("Erro ao atualizar o teste de matéria-prima:", error);
-            if (typeof showToast === 'function') showToast("Erro ao atualizar o teste: " + error.message, "error");
-            else alert("Erro ao atualizar o teste: " + error.message);
+            console.error("Erro ao atualizar o teste:", error);
+            showToast("Erro ao atualizar o teste: " + error.message, "error");
         } finally {
             if(submitButton) {
                 submitButton.disabled = false;
@@ -193,162 +207,156 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function carregarEExibirTestes() {
-        if (!listaTestesMpDiv) {
-            console.error("Elemento #listaTestesMp não encontrado!");
+    if (!listaTestesMpDiv) {
+        console.error("Elemento #listaTestesMp não encontrado!");
+        return;
+    }
+    listaTestesMpDiv.innerHTML = '<p>A carregar testes...</p>';
+
+    try {
+        // ETAPA 1: Buscar coleções de apoio (Matérias-Primas e Tipos de Teste) UMA ÚNICA VEZ
+        console.log("Otimização: Buscando coleções de apoio...");
+        const [materiasPrimasSnapshot, tiposTesteSnapshot] = await Promise.all([
+            db.collection("MateriasPrimas").get(),
+            db.collection("TiposTeste").get()
+        ]);
+
+        // ETAPA 2: Criar Mapas para consulta rápida na memória
+        const materiasPrimasMap = new Map();
+        materiasPrimasSnapshot.forEach(doc => {
+            const data = doc.data();
+            const nomeCompleto = data.descricao_mp + (data.codigo_interno_mp ? ` (${data.codigo_interno_mp})` : '');
+            materiasPrimasMap.set(doc.id, nomeCompleto);
+        });
+
+        const tiposTesteMap = new Map();
+        tiposTesteSnapshot.forEach(doc => {
+            tiposTesteMap.set(doc.id, doc.data().nome_tipo_teste);
+        });
+        console.log("Otimização: Mapas de consulta criados.");
+
+        // ETAPA 3: Buscar a coleção principal de Testes
+        console.log("Buscando a lista principal de testes...");
+        const querySnapshot = await db.collection("TestesMateriaPrima")
+            .orderBy("data_cadastro", "desc")
+            .get();
+
+        if (querySnapshot.empty) {
+            listaTestesMpDiv.innerHTML = '<p>Nenhum teste de matéria-prima encontrado.</p>';
             return;
         }
-        listaTestesMpDiv.innerHTML = '<p>A carregar testes...</p>';
 
-        try {
-            console.log("Debug: Iniciando carregarEExibirTestes...");
-            const querySnapshot = await db.collection("TestesMateriaPrima")
-                .orderBy("data_cadastro", "desc")
-                .get();
-            console.log("Debug: Query principal para TestesMateriaPrima concluída. Documentos:", querySnapshot.docs.length);
+        // ETAPA 4: Montar o HTML usando os Mapas (muito mais rápido, sem novas leituras no banco)
+        let htmlTestesItens = [];
+        for (const doc of querySnapshot.docs) {
+            const teste = doc.data();
+            const idTeste = doc.id;
 
-            if (querySnapshot.empty) {
-                listaTestesMpDiv.innerHTML = '<p>Nenhum teste de matéria-prima encontrado.</p>';
-                console.log("Debug: Nenhum teste encontrado.");
-                return;
+            // Consulta rápida nos mapas locais, sem 'await'
+            const nomeMateriaPrima = materiasPrimasMap.get(teste.id_materia_prima) || `ID MP: ${teste.id_materia_prima} (não encontrada)`;
+            const nomeTipoTeste = tiposTesteMap.get(teste.id_tipo_teste) || `ID Tipo: ${teste.id_tipo_teste} (não encontrado)`;
+
+            let fotosHtml = '<p>Sem fotos.</p>';
+            if (teste.fotos_material_urls && teste.fotos_material_urls.length > 0) {
+                fotosHtml = '<div class="fotos-container">';
+                teste.fotos_material_urls.forEach(url => {
+                    fotosHtml += `<img src="${url}" alt="Foto do material" class="thumbnail-image" data-src="${url}">`;
+                });
+                fotosHtml += '</div>';
             }
 
-            let htmlTestesItens = [];
-            console.log("Debug: Iniciando loop pelos testes...");
-
-            for (const doc of querySnapshot.docs) {
-                const teste = doc.data();
-                const idTeste = doc.id;
-                console.log(`Debug: Processando teste ID: ${idTeste}`);
-
-                let nomeMateriaPrima = `ID MP: ${teste.id_materia_prima}`;
-                if (teste.id_materia_prima) {
-                    try {
-                        const mpDoc = await db.collection("MateriasPrimas").doc(teste.id_materia_prima).get();
-                        if (mpDoc.exists) {
-                            nomeMateriaPrima = mpDoc.data().descricao_mp + (mpDoc.data().codigo_interno_mp ? ` (${mpDoc.data().codigo_interno_mp})` : '');
-                        } else {
-                            nomeMateriaPrima = `Matéria-Prima ID: ${teste.id_materia_prima} (não encontrada)`;
-                        }
-                    } catch (error) { // Adicionar log no catch também
-                        console.error("Erro ao buscar matéria-prima ID:", teste.id_materia_prima, error);
-                        nomeMateriaPrima = `Erro ao buscar MP ID: ${teste.id_materia_prima}`;
-                    }
-                }
-
-                let nomeTipoTeste = `ID Tipo: ${teste.id_tipo_teste}`;
-                if (teste.id_tipo_teste) {
-                    try {
-                        const ttDoc = await db.collection("TiposTeste").doc(teste.id_tipo_teste).get();
-                        if (ttDoc.exists) {
-                            nomeTipoTeste = ttDoc.data().nome_tipo_teste;
-                        } else {
-                            nomeTipoTeste = `Tipo de Teste ID: ${teste.id_tipo_teste} (não encontrado)`;
-                        }
-                    } catch (error) { // Adicionar log no catch também
-                        console.error("Erro ao buscar tipo de teste ID:", teste.id_tipo_teste, error);
-                        nomeTipoTeste = `Erro ao buscar Tipo Teste ID: ${teste.id_tipo_teste}`;
-                    }
-                }
-
-                let fotosHtml = '<p>Sem fotos.</p>';
-                if (teste.fotos_material_urls && teste.fotos_material_urls.length > 0) {
-                    fotosHtml = '<div class="fotos-container">';
-                    teste.fotos_material_urls.forEach(url => {
-                        fotosHtml += `<img src="${url}" alt="Foto do material" class="thumbnail-image" data-src="${url}" style="max-width: 100px; max-height: 100px; margin: 5px;">`;
-                    });
-                    fotosHtml += '</div>';
-                }
-
-                htmlTestesItens.push(`
-                    <li class="item-teste" data-id="${idTeste}">
-                        <div>
-                            <h3>Matéria-Prima: ${nomeMateriaPrima}</h3>
-                            <p><strong>ID do Teste:</strong> ${idTeste}</p>
-                            <p><strong>Tipo de Teste:</strong> ${nomeTipoTeste}</p>
-                            <p><strong>Data do Teste:</strong> ${formatarTimestamp(teste.data_teste)}</p>
-                            <p><strong>Resultado:</strong> ${teste.resultado || 'N/A'}</p>
-                            <p><strong>Observações:</strong> ${teste.observacoes || 'Nenhuma'}</p>
-                            <p><strong>Responsável:</strong> ${teste.responsavel_teste_email || 'N/A'}</p>
-                            <p><strong>Data de Cadastro:</strong> ${formatarTimestamp(teste.data_cadastro)}</p>
-                            <div><strong>Fotos:</strong> ${fotosHtml}</div>
-                        </div>
-                        <div class="acoes-teste">
-                            <button class="edit-test-btn" data-id="${idTeste}">Editar</button>
-                            <button class="delete-test-btn" data-id="${idTeste}">Excluir</button>
-                        </div>
-                        <hr style="clear:both; margin-top:10px;">
-                    </li>
-                `);
-            }
-            console.log("Debug: Loop concluído. Montando HTML final.");
-            listaTestesMpDiv.innerHTML = `<ul>${htmlTestesItens.join('')}</ul>`;
-            console.log("Debug: HTML renderizado.");
-
-            document.querySelectorAll('.thumbnail-image').forEach(img => {
-                img.onclick = function() {
-                    if (imageModal && modalImage && captionText) { 
-                        imageModal.style.display = "block";
-                        modalImage.src = this.dataset.src;
-                        captionText.innerHTML = this.alt;
-                    }
-                }
-            });
-
-            document.querySelectorAll('.edit-test-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const testeId = this.dataset.id;
-                    db.collection("TestesMateriaPrima").doc(testeId).get().then(docSnapshot => {
-                        if (docSnapshot.exists) {
-                            abrirModalEdicaoTesteMp(testeId, docSnapshot.data());
-                        } else {
-                            console.error("Documento do teste não encontrado para edição.");
-                            if (typeof showToast === 'function') showToast("Erro: Teste não encontrado para edição.", "error");
-                            else alert("Erro: Teste não encontrado para edição.");
-                        }
-                    }).catch(err => {
-                        console.error("Erro ao buscar dados do teste para edição:", err);
-                        if (typeof showToast === 'function') showToast("Erro ao carregar dados para edição.", "error");
-                        else alert("Erro ao carregar dados para edição.");
-                    });
-                });
-            });
-
-            document.querySelectorAll('.delete-test-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const testeId = this.dataset.id;
-                    db.collection("TestesMateriaPrima").doc(testeId).get().then(docSnapshot => {
-                        if (docSnapshot.exists) {
-                            const dadosTeste = docSnapshot.data();
-                            excluirTesteMp(testeId, dadosTeste.fotos_material_urls || []);
-                        } else {
-                             console.error("Documento do teste não encontrado para exclusão.");
-                             if (typeof showToast === 'function') showToast("Erro: Teste não encontrado para exclusão.", "error");
-                             else alert("Erro: Teste não encontrado para exclusão.");
-                        }
-                    }).catch(err => {
-                        console.error("Erro ao buscar dados do teste para exclusão:", err);
-                        if (typeof showToast === 'function') showToast("Erro ao carregar dados para exclusão.", "error");
-                        else alert("Erro ao carregar dados para exclusão.");
-                    });
-                });
-            });
-
-        } catch (error) {
-            console.error("Erro DETALHADO em carregarEExibirTestes: ", error);
-            listaTestesMpDiv.innerHTML = `<p>Erro ao carregar testes. Verifique o console para detalhes. (${error.message || 'Erro desconhecido'})</p>`;
+            htmlTestesItens.push(`
+                <li class="item-teste" data-id="${idTeste}">
+                    <div>
+                        <h3>Matéria-Prima: ${nomeMateriaPrima}</h3>
+                        <p><strong>ID do Teste:</strong> ${idTeste}</p>
+                        <p><strong>Tipo de Teste:</strong> ${nomeTipoTeste}</p>
+                        <p><strong>Data do Teste:</strong> ${formatarTimestamp(teste.data_teste)}</p>
+                        <p><strong>Resultado:</strong> ${teste.resultado || 'N/A'}</p>
+                        <p><strong>Observações:</strong> ${teste.observacoes || 'Nenhuma'}</p>
+                        <p><strong>Responsável:</strong> ${teste.responsavel_teste_email || 'N/A'}</p>
+                        <p><strong>Data de Cadastro:</strong> ${formatarTimestamp(teste.data_cadastro)}</p>
+                        <div><strong>Fotos:</strong> ${fotosHtml}</div>
+                    </div>
+                    <div class="acoes-teste">
+                        <button class="edit-test-btn" data-id="${idTeste}">Editar</button>
+                        <button class="delete-test-btn" data-id="${idTeste}">Excluir</button>
+                    </div>
+                    <hr>
+                </li>
+            `);
         }
+        
+        listaTestesMpDiv.innerHTML = `<ul>${htmlTestesItens.join('')}</ul>`;
+
+        // Anexar os event listeners DEPOIS de inserir o HTML no DOM
+        // (O seu código para isso já estava correto, então o mantemos igual)
+        document.querySelectorAll('.thumbnail-image').forEach(img => {
+            img.onclick = function() {
+                if (imageModal && modalImage) { 
+                    imageModal.style.display = "block";
+                    modalImage.src = this.dataset.src;
+                }
+            }
+        });
+
+        document.querySelectorAll('.edit-test-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const testeId = this.dataset.id;
+                db.collection("TestesMateriaPrima").doc(testeId).get().then(docSnapshot => {
+                    if (docSnapshot.exists) {
+                        abrirModalEdicaoTesteMp(testeId, docSnapshot.data());
+                    } else {
+                        showToast("Erro: Teste não encontrado para edição.", "error");
+                    }
+                }).catch(err => {
+                    console.error("Erro ao buscar dados do teste para edição:", err);
+                    showToast("Erro ao carregar dados para edição.", "error");
+                });
+            });
+        });
+
+        document.querySelectorAll('.delete-test-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const testeId = this.dataset.id;
+                db.collection("TestesMateriaPrima").doc(testeId).get().then(docSnapshot => {
+                    if (docSnapshot.exists) {
+                        const dadosTeste = docSnapshot.data();
+                        excluirTesteMp(testeId, dadosTeste.fotos_material_urls || []);
+                    } else {
+                        showToast("Erro: Teste não encontrado para exclusão.", "error");
+                    }
+                }).catch(err => {
+                    console.error("Erro ao buscar dados do teste para exclusão:", err);
+                    showToast("Erro ao carregar dados para exclusão.", "error");
+                });
+            });
+        });
+
+    } catch (error) {
+        console.error("Erro em carregarEExibirTestes: ", error);
+        listaTestesMpDiv.innerHTML = `<p style="color:red;">Erro ao carregar testes. Verifique o console.</p>`;
     }
+}
 
     firebase.auth().onAuthStateChanged(function(user) {
+        // Ponto de verificação 1: O listener de autenticação foi acionado?
+        console.log("DEPURAÇÃO: onAuthStateChanged foi acionado.");
+
         if (user) {
+            // Ponto de verificação 2: O objeto 'user' foi encontrado?
+            console.log("DEPURAÇÃO: Usuário ENCONTRADO.", user.email);
+
             const userInfoElement = document.getElementById('userInfo');
             if (userInfoElement) {
                 userInfoElement.textContent = 'Sessão iniciada como: ' + (user.displayName || user.email);
             }
-            carregarEExibirTestes();
+
+            // Ponto de verificação 3: A função principal de carregamento está sendo chamada?
+            console.log("DEPURAÇÃO: Chamando a função carregarEExibirTestes()...");
+            carregarEExibirTestes(); // <-- Aqui chamamos a função otimizada que você colou antes
 
             // Configurar listeners para o modal de edição de Teste de Matéria-Prima
-            // É importante que o HTML do modal já exista na página para estes getElementById funcionarem
             modalEdicaoTesteMp = document.getElementById('modalEdicaoTesteMp');
             formEdicaoTesteMp = document.getElementById('formEdicaoTesteMp');
             botaoFecharModalEdicaoTesteMp = document.getElementById('botaoFecharModalEdicaoTesteMp');
@@ -359,27 +367,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     salvarEdicaoTesteMp();
                 });
             } else {
-                console.warn("Formulário de edição de Teste MP não encontrado para adicionar listener de submit.");
+                console.warn("DEPURAÇÃO: Formulário de edição de Teste MP não encontrado.");
             }
 
             if (botaoFecharModalEdicaoTesteMp) {
                 botaoFecharModalEdicaoTesteMp.addEventListener('click', fecharModalEdicaoTesteMp);
             } else {
-                console.warn("Botão de fechar modal de edição de Teste MP não encontrado.");
+                console.warn("DEPURAÇÃO: Botão de fechar modal de edição de Teste MP não encontrado.");
             }
 
             if (modalEdicaoTesteMp) { 
                 modalEdicaoTesteMp.addEventListener('click', function(event) {
-                    if (event.target === modalEdicaoTesteMp) { // Para fechar clicando fora
+                    if (event.target === modalEdicaoTesteMp) {
                         fecharModalEdicaoTesteMp();
                     }
                 });
             } else {
-                 console.warn("Elemento do modal de edição de Teste MP não encontrado.");
+                console.warn("DEPURAÇÃO: Elemento do modal de edição de Teste MP não encontrado.");
             }
 
         } else {
-            window.location.href = 'login.html';
+            // Ponto de verificação 4: O usuário foi considerado 'null' (deslogado)?
+            console.log("DEPURAÇÃO: Usuário NÃO encontrado. Redirecionando para login.html...");
+            // window.location.href = 'login.html'; // Comentado temporariamente para podermos ver os logs
         }
     });
 
@@ -398,4 +408,3 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-});

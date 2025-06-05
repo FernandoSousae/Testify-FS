@@ -175,6 +175,19 @@
             <form id="formEdicaoTesteMp">
                 <input type="hidden" id="hiddenTesteMpIdEdicao">
                 <div>
+                    <label for="materiaPrimaEdicao">Matéria-Prima:</label>
+                    <select id="materiaPrimaEdicao" required>
+                    <option value="">A carregar...</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="tipoTesteEdicao">Tipo de Teste:</label>
+                    <select id="tipoTesteEdicao" required>
+                    <option value="">A carregar...</option>
+                    </select>
+                </div>
+
+                <div>
                     <label for="dataTesteEdicao">Data do Teste:</label>
                     <input type="date" id="dataTesteEdicao" required>
                 </div>
@@ -210,52 +223,23 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js"></script> <!-- SDK do Storage é importante para excluir fotos -->
     
     <script>
-      // Função para inicializar o Firebase e carregar o script da página
-      function inicializarAppVisualizacaoTestesMp() {
-        if (typeof firebaseConfig !== 'undefined') {
-          if (firebase.apps.length === 0) { // Inicializar apenas se não houver app [DEFAULT]
+        // Lógica de carregamento SIMPLIFICADA para depuração
+
+        // 1. Inicializa o Firebase
+        console.log("DEPURAÇÃO: Script simplificado INICIADO.");
+        if (typeof firebaseConfig !== 'undefined' && firebase.apps.length === 0) {
             firebase.initializeApp(firebaseConfig);
-            console.log("Firebase SDK inicializado em visualizar_testes_mp.html!");
-          } else {
-            console.log("Firebase SDK já estava inicializado em visualizar_testes_mp.html.");
-          }
-          
-          // Carrega o script específico da página APÓS utils.js estar carregado (assumindo que utils.js é carregado de forma síncrona antes deste bloco)
-          var scriptPagina = document.createElement('script');
-          scriptPagina.src = 'visualizar_testes_mp_app.js';
-          document.body.appendChild(scriptPagina);
-
-          // Listener para o modal de imagem (pode ser movido para visualizar_testes_mp_app.js se preferir)
-          const imageModalLocal = document.getElementById("imageModal"); // Usar var local para evitar conflito de escopo
-          const closeImageModalBtnLocal = document.getElementById("closeImageModalBtn"); 
-          if (imageModalLocal && closeImageModalBtnLocal) {
-              closeImageModalBtnLocal.onclick = function() { imageModalLocal.style.display = "none"; }
-              imageModalLocal.onclick = function(event) {
-                  if (event.target === imageModalLocal) { imageModalLocal.style.display = "none"; }
-              }
-          } else {
-              console.warn("Elementos do modal de imagem não encontrados para configurar fechamento nesta página.");
-          }
-
+            console.log("DEPURAÇÃO: Firebase inicializado pelo script SIMPLIFICADO.");
         } else {
-          console.error("ERRO FATAL: firebaseConfig não está definido. Verifique 'firebase-config.js'.");
-          const mainContentError = document.querySelector('main .test-list-container'); 
-          if (mainContentError) {
-              mainContentError.innerHTML = '<p style="color:red; text-align:center;">Erro crítico na configuração.</p>';
-          }
+            console.log("DEPURAÇÃO: Firebase JÁ estava inicializado ou config não foi encontrada.");
         }
-      }
 
-      // Garante que utils.js (e showToast) e Firebase SDK estejam disponíveis antes de inicializar o app da página
-      function verificarDependenciasEInicializar() {
-        if (typeof showToast === 'function' && typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
-            inicializarAppVisualizacaoTestesMp();
-        } else {
-            console.warn("Dependências (utils.js ou Firebase SDK) ainda não carregadas, a aguardar um momento...");
-            setTimeout(verificarDependenciasEInicializar, 300); // Tenta novamente após 300ms
-        }
-      }
-      verificarDependenciasEInicializar(); // Inicia a verificação
+        // 2. Tenta carregar o script da página DIRETAMENTE
+        console.log("DEPURAÇÃO: Tentando carregar 'visualizar_testes_mp_app.js'...");
+        var scriptPagina = document.createElement('script');
+        scriptPagina.src = 'visualizar_testes_mp_app.js';
+        document.body.appendChild(scriptPagina);    
+        console.log("DEPURAÇÃO: Tag de script para 'visualizar_testes_mp_app.js' foi adicionada ao body.");
     </script>
 </body>
 </html>
