@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+
     console.log("visualizar_testes_cp_app.js carregado e DOM pronto!");
 
     const db = firebase.firestore();
@@ -151,4 +151,3 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-});
