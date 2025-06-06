@@ -1,99 +1,184 @@
-// Este console.log deve ser a primeira coisa a aparecer se o ficheiro for carregado e executado.
 console.log("dashboard_app.js: Ficheiro INICIADO.");
 
-// Verifica se o objeto firebase e seus serviços essenciais estão disponíveis globalmente.
-// Isto assume que firebase-config.js e os SDKs do Firebase foram carregados
-// e firebase.initializeApp() foi chamado com sucesso ANTES deste script ser carregado
-// (conforme a lógica no dashboard.html).
-if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || typeof firebase.firestore === 'undefined') {
-    console.error("ERRO CRÍTICO em dashboard_app.js: Firebase, firebase.auth(), ou firebase.firestore() NÃO está definido. Verifique a inicialização no HTML.");
-    const mainContentErrorCheck = document.querySelector('main');
-    if (mainContentErrorCheck) {
-        mainContentErrorCheck.innerHTML = '<div class="admin-container"><p style="color:red; text-align:center;">Erro crítico na inicialização da aplicação (dashboard_app). Contacte o suporte.</p></div>';
-        // Não escondemos o main content aqui, pois já pode estar visível com erro do HTML.
-    }
+if (typeof firebase === 'undefined') {
+    console.error("ERRO CRÍTICO: Firebase não definido.");
 } else {
-    console.log("dashboard_app.js: Firebase, auth e firestore estão definidos. A prosseguir.");
-
     const db = firebase.firestore();
     const auth = firebase.auth();
-
-    const userInfoElement = document.getElementById('userInfo');
     const logoutButton = document.getElementById('logoutButton');
-    const adminOnlyMenuItems = document.querySelectorAll('.admin-only');
 
-    if (!userInfoElement) {
-        console.error("dashboard_app.js: Elemento 'userInfo' NÃO encontrado no DOM.");
-    } else {
-        console.log("dashboard_app.js: Elemento 'userInfo' encontrado.");
-    }
-    if (!logoutButton) {
-        console.error("dashboard_app.js: Elemento 'logoutButton' NÃO encontrado no DOM.");
-    } else {
-        console.log("dashboard_app.js: Elemento 'logoutButton' encontrado.");
-    }
-    if (adminOnlyMenuItems.length === 0) {
-        console.warn("dashboard_app.js: Nenhum elemento com a classe '.admin-only' foi encontrado.");
-    } else {
-        console.log(`dashboard_app.js: Encontrados ${adminOnlyMenuItems.length} itens de menu '.admin-only'.`);
-        // Esconder por defeito, serão mostrados se o utilizador for admin
-        adminOnlyMenuItems.forEach(item => item.style.display = 'none');
-    }
-
-
+    // --- PONTO DE ENTRADA PRINCIPAL ---
     auth.onAuthStateChanged(function(user) {
-        console.log("dashboard_app.js: onAuthStateChanged callback disparado.");
         if (user) {
-            console.log("dashboard_app.js: Utilizador autenticado:", user.email);
-            if (userInfoElement) {
-                userInfoElement.textContent = 'Sessão iniciada como: ' + (user.displayName || user.email);
-                console.log("dashboard_app.js: userInfoElement atualizado.");
-            }
-
-            // Verificar se o utilizador é Administrador para mostrar/esconder itens
-            const userDocRef = db.collection('Usuarios').doc(user.uid);
-            userDocRef.get().then((doc) => {
-                if (doc.exists) {
-                    const userData = doc.data();
-                    if (userData.tipo_usuario === 'Administrador') {
-                        console.log("dashboard_app.js: Utilizador é Administrador. A mostrar itens de admin.");
-                        adminOnlyMenuItems.forEach(item => item.style.display = 'flex'); // 'flex' porque .menu-item usa flex
-                    } else {
-                        console.log("dashboard_app.js: Utilizador não é Administrador. Itens de admin permanecem escondidos.");
-                        adminOnlyMenuItems.forEach(item => item.style.display = 'none');
-                    }
-                } else {
-                    console.warn("dashboard_app.js: Documento do utilizador não encontrado no Firestore para UID:", user.uid, ". Itens de admin permanecerão escondidos.");
-                    adminOnlyMenuItems.forEach(item => item.style.display = 'none');
-                }
-            }).catch(error => {
-                console.error("dashboard_app.js: Erro ao buscar dados do utilizador para verificar tipo:", error);
-                adminOnlyMenuItems.forEach(item => item.style.display = 'none'); // Esconder por segurança
-            });
-
+            document.getElementById('userInfo').textContent = 'Sessão iniciada como: ' + (user.displayName || user.email);
+            verificarPermissoesAdmin(user);
+            carregarMetricasDashboard();
+            configurarListenersDashboard(); // <-- NOVA CHAMADA DE FUNÇÃO
         } else {
-            console.log("dashboard_app.js: Nenhum utilizador autenticado. A redirecionar para o login...");
             window.location.href = 'login.html';
         }
     });
 
-    if (logoutButton) {
-        logoutButton.addEventListener('click', function() {
-            console.log("dashboard_app.js: Botão de logout clicado.");
-            if (auth && typeof auth.signOut === 'function') {
-                auth.signOut().then(() => {
-                    console.log('dashboard_app.js: Utilizador terminou a sessão com sucesso via signOut.');
-                    window.location.href = 'login.html';
-                }).catch((error) => {
-                    console.error('dashboard_app.js: Erro ao terminar a sessão:', error);
-                    showToast('Erro ao terminar a sessão: ' + error.message, 'error');
-                });
-            } else {
-                console.error("dashboard_app.js: Erro: firebase.auth() ou auth.signOut não está disponível para o logout.");
-                showToast("Erro crítico ao tentar terminar a sessão. Contacte o suporte.", "error");
+    // --- FUNÇÃO PARA CONFIGURAR LISTENERS ESTÁTICOS ---
+    /**
+     * NOVO: Adiciona os listeners de clique aos cards e ao botão de logout.
+     */
+    function configurarListenersDashboard() {
+        const cardMp = document.getElementById('totalTestesMp')?.parentElement;
+        const cardCp = document.getElementById('totalTestesCp')?.parentElement;
+
+        if (cardMp) {
+            cardMp.style.cursor = 'pointer';
+            cardMp.title = 'Clique para ver todos os testes de Matéria-Prima';
+            cardMp.addEventListener('click', () => {
+                window.location.href = 'visualizar_testes_mp.html';
+            });
+        }
+
+        if (cardCp) {
+            cardCp.style.cursor = 'pointer';
+            cardCp.title = 'Clique para ver todos os testes de Calçado Pronto';
+            cardCp.addEventListener('click', () => {
+                window.location.href = 'visualizar_testes_cp.html';
+            });
+        }
+
+        if (logoutButton) {
+            logoutButton.addEventListener('click', () => {
+                auth.signOut().then(() => { window.location.href = 'login.html'; });
+            });
+        }
+    }
+
+
+    // --- FUNÇÕES DE CARREGAMENTO DE MÉTRICAS (sem alterações) ---
+    function carregarMetricasDashboard() {
+        atualizarContadores();
+        gerarGraficoResultadosMp();
+        gerarGraficoResultadosCp();
+        exibirAtividadeRecente();
+    }
+
+    async function atualizarContadores() {
+        try {
+            const [testesMpSnapshot, testesCpSnapshot] = await Promise.all([
+                db.collection("TestesMateriaPrima").get(),
+                db.collection("TestesCalcadoPronto").get()
+            ]);
+            document.getElementById('totalTestesMp').textContent = testesMpSnapshot.size;
+            document.getElementById('totalTestesCp').textContent = testesCpSnapshot.size;
+        } catch (error) {
+            console.error("Erro ao atualizar contadores:", error);
+        }
+    }
+
+    async function gerarGraficoResultadosMp() {
+        try {
+            const snapshot = await db.collection("TestesMateriaPrima").get();
+            let contadores = { 'Aprovado': 0, 'Reprovado': 0, 'Em Análise': 0 };
+            snapshot.forEach(doc => {
+                const resultado = doc.data().resultado;
+                if (resultado in contadores) contadores[resultado]++;
+            });
+
+            const totalValidos = contadores['Aprovado'] + contadores['Reprovado'];
+            const taxaAprovacao = totalValidos > 0 ? ((contadores['Aprovado'] / totalValidos) * 100).toFixed(1) + '%' : 'N/A';
+            document.getElementById('taxaAprovacaoMp').textContent = taxaAprovacao;
+            
+            const ctx = document.getElementById('graficoResultadosMp').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Aprovado', 'Reprovado', 'Em Análise'],
+                    datasets: [{
+                        data: [contadores['Aprovado'], contadores['Reprovado'], contadores['Em Análise']],
+                        backgroundColor: ['rgba(75, 192, 192, 0.7)', 'rgba(255, 99, 132, 0.7)', 'rgba(255, 206, 86, 0.7)'],
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+        } catch (error) {
+            console.error("Erro ao gerar gráfico de MP:", error);
+        }
+    }
+
+    async function gerarGraficoResultadosCp() {
+        try {
+            const snapshot = await db.collection("TestesCalcadoPronto").get();
+            let contadores = { 'Aprovado': 0, 'Reprovado': 0, 'Em Análise': 0 };
+            snapshot.forEach(doc => {
+                const resultado = doc.data().resultado;
+                if (resultado in contadores) contadores[resultado]++;
+            });
+
+            const totalValidos = contadores['Aprovado'] + contadores['Reprovado'];
+            const taxaAprovacao = totalValidos > 0 ? ((contadores['Aprovado'] / totalValidos) * 100).toFixed(1) + '%' : 'N/A';
+            document.getElementById('taxaAprovacaoCp').textContent = taxaAprovacao;
+            
+            const ctx = document.getElementById('graficoResultadosCp').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Aprovado', 'Reprovado', 'Em Análise'],
+                    datasets: [{
+                        data: [contadores['Aprovado'], contadores['Reprovado'], contadores['Em Análise']],
+                        backgroundColor: ['rgba(54, 162, 235, 0.7)', 'rgba(255, 99, 132, 0.7)', 'rgba(255, 206, 86, 0.7)'],
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } } }
+            });
+        } catch (error) {
+            console.error("Erro ao gerar gráfico de CP:", error);
+        }
+    }
+
+    async function exibirAtividadeRecente() {
+        const listaUl = document.getElementById('listaAtividadeRecente');
+        try {
+            const materiasPrimasMap = new Map((await db.collection("MateriasPrimas").get()).docs.map(doc => [doc.id, doc.data().descricao_mp]));
+            const snapshot = await db.collection("TestesMateriaPrima").orderBy("data_cadastro", "desc").limit(5).get();
+            if (snapshot.empty) {
+                listaUl.innerHTML = '<li>Nenhuma atividade recente.</li>';
+                return;
             }
+            let htmlAtividades = '';
+            snapshot.forEach(doc => {
+                const teste = doc.data();
+                const nomeMateriaPrima = materiasPrimasMap.get(teste.id_materia_prima) || 'Matéria-prima desconhecida';
+                const dataFormatada = teste.data_cadastro ? formatarTimestamp(teste.data_cadastro) : 'Data indisponível';
+                htmlAtividades += `<li>Teste em <strong>${nomeMateriaPrima}</strong> - ${dataFormatada}</li>`;
+            });
+            listaUl.innerHTML = htmlAtividades;
+        } catch (error) {
+            console.error("Erro ao exibir atividade recente:", error);
+        }
+    }
+
+    // --- FUNÇÕES DE PERMISSÃO E LOGOUT ---
+    function verificarPermissoesAdmin(user) {
+        const userDocRef = db.collection('Usuarios').doc(user.uid);
+        userDocRef.get().then((doc) => {
+            const isAdmin = doc.exists && doc.data().tipo_usuario === 'Administrador';
+            document.querySelectorAll('.admin-only').forEach(item => {
+                item.style.display = isAdmin ? 'flex' : 'none';
+            });
+        }).catch(error => {
+            console.error("Erro ao verificar permissões:", error);
+            document.querySelectorAll('.admin-only').forEach(item => item.style.display = 'none');
         });
-    } else {
-        console.warn("dashboard_app.js: Botão de logout não encontrado, listener de clique não adicionado.");
+    }
+
+    if (logoutButton) {
+        logoutButton.addEventListener('click', () => {
+            auth.signOut().then(() => { window.location.href = 'login.html'; });
+        });
+    }
+
+    function formatarTimestamp(timestamp) {
+        if (!timestamp) return '';
+        const data = timestamp.toDate();
+        const dia = String(data.getDate()).padStart(2, '0');
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        return `${dia}/${mes}/${data.getFullYear()}`;
     }
 }
