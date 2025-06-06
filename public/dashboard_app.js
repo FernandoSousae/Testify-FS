@@ -132,25 +132,58 @@ if (typeof firebase === 'undefined') {
         }
     }
 
+    /**
+     * ATUALIZADO: Busca os 5 últimos testes de AMBAS as coleções,
+     * combina, ordena e exibe o resultado.
+     */
     async function exibirAtividadeRecente() {
         const listaUl = document.getElementById('listaAtividadeRecente');
         try {
+            // Buscamos os dados de apoio primeiro (catálogo de matérias-primas)
             const materiasPrimasMap = new Map((await db.collection("MateriasPrimas").get()).docs.map(doc => [doc.id, doc.data().descricao_mp]));
-            const snapshot = await db.collection("TestesMateriaPrima").orderBy("data_cadastro", "desc").limit(5).get();
-            if (snapshot.empty) {
+
+            // 1. Fazemos as duas buscas em paralelo
+            const [testesMpSnapshot, testesCpSnapshot] = await Promise.all([
+                db.collection("TestesMateriaPrima").orderBy("data_cadastro", "desc").limit(5).get(),
+                db.collection("TestesCalcadoPronto").orderBy("data_cadastro", "desc").limit(5).get()
+            ]);
+
+            // 2. Juntamos os resultados das duas buscas em uma única lista
+            const todosOsTestes = [];
+            testesMpSnapshot.forEach(doc => todosOsTestes.push({ tipo: 'MP', ...doc.data() }));
+            testesCpSnapshot.forEach(doc => todosOsTestes.push({ tipo: 'CP', ...doc.data() }));
+
+            // 3. Ordenamos a lista combinada pela data de cadastro
+            todosOsTestes.sort((a, b) => b.data_cadastro.toMillis() - a.data_cadastro.toMillis());
+
+            // 4. Pegamos apenas os 5 mais recentes da lista combinada
+            const ultimos5Testes = todosOsTestes.slice(0, 5);
+
+            if (ultimos5Testes.length === 0) {
                 listaUl.innerHTML = '<li>Nenhuma atividade recente.</li>';
                 return;
             }
+            
+            // 5. Geramos o HTML para exibir a lista final
             let htmlAtividades = '';
-            snapshot.forEach(doc => {
-                const teste = doc.data();
-                const nomeMateriaPrima = materiasPrimasMap.get(teste.id_materia_prima) || 'Matéria-prima desconhecida';
-                const dataFormatada = teste.data_cadastro ? formatarTimestamp(teste.data_cadastro) : 'Data indisponível';
-                htmlAtividades += `<li>Teste em <strong>${nomeMateriaPrima}</strong> - ${dataFormatada}</li>`;
+            ultimos5Testes.forEach(teste => {
+                const dataFormatada = formatarTimestamp(teste.data_cadastro);
+                let descricaoTeste = '';
+
+                if (teste.tipo === 'MP') {
+                    const nomeMateriaPrima = materiasPrimasMap.get(teste.id_materia_prima) || 'Matéria-prima desconhecida';
+                    descricaoTeste = `Teste de Matéria-Prima em <strong>${nomeMateriaPrima}</strong>`;
+                } else if (teste.tipo === 'CP') {
+                    descricaoTeste = `Teste de Calçado Pronto na Ref: <strong>${teste.referencia_calcado}</strong>`;
+                }
+                
+                htmlAtividades += `<li>${descricaoTeste} - ${dataFormatada}</li>`;
             });
             listaUl.innerHTML = htmlAtividades;
+
         } catch (error) {
             console.error("Erro ao exibir atividade recente:", error);
+            listaUl.innerHTML = '<li>Erro ao carregar atividades.</li>';
         }
     }
 
