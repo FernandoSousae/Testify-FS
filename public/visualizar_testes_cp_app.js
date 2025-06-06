@@ -26,10 +26,12 @@ auth.onAuthStateChanged(user => {
  * Configura todos os 'ouvintes' de eventos para elementos estáticos da página.
  */
 function configurarListenersDaPaginaCp() {
+    popularFiltroTipoTeste();
     document.getElementById('botaoFiltrarCp').addEventListener('click', carregarEExibirTestesCp);
     document.getElementById('botaoLimparFiltrosCp').addEventListener('click', () => {
         document.getElementById('buscaCp').value = '';
         document.getElementById('filtroSubCategoriaCp').value = '';
+        document.getElementById('filtroTipoTesteCp').value = '';
         document.getElementById('filtroResultadoCp').value = '';
         document.getElementById('filtroDataInicioCp').value = '';
         document.getElementById('filtroDataFimCp').value = '';
@@ -62,6 +64,7 @@ async function carregarEExibirTestesCp() {
         // 1. LÊ OS VALORES DOS FILTROS
         const termoBusca = document.getElementById('buscaCp').value.toLowerCase();
         const subCategoriaFiltro = document.getElementById('filtroSubCategoriaCp').value;
+        const tipoTesteFiltro = document.getElementById('filtroTipoTesteCp').value;
         const resultadoFiltro = document.getElementById('filtroResultadoCp').value;
         const dataInicio = document.getElementById('filtroDataInicioCp').value;
         const dataFim = document.getElementById('filtroDataFimCp').value;
@@ -73,6 +76,7 @@ async function carregarEExibirTestesCp() {
         // 3. CONSTRÓI A CONSULTA DINÂMICA
         let query = db.collection("TestesCalcadoPronto");
         if (subCategoriaFiltro) query = query.where("sub_categoria", "==", subCategoriaFiltro);
+        if (tipoTesteFiltro) query = query.where("id_tipo_teste", "==", tipoTesteFiltro);
         if (resultadoFiltro) query = query.where("resultado", "==", resultadoFiltro);
         if (dataInicio) query = query.where("data_inicio_teste", ">=", firebase.firestore.Timestamp.fromDate(new Date(dataInicio + 'T00:00:00')));
         if (dataFim) query = query.where("data_inicio_teste", "<=", firebase.firestore.Timestamp.fromDate(new Date(dataFim + 'T23:59:59')));
@@ -137,8 +141,22 @@ function conectarBotoesDaListaCp(docs) {
     const itensDaLista = listaTestesCpDiv.querySelectorAll('.item-teste');
     itensDaLista.forEach((item, index) => {
         const doc = docs[index];
+        // Listener para o botão de editar (já existente)
         item.querySelector('.edit-test-cp-btn').addEventListener('click', () => abrirModalEdicaoTesteCp(doc.id, doc.data()));
+        // Listener para o botão de excluir (já existente)
         item.querySelector('.delete-test-cp-btn').addEventListener('click', () => excluirTesteCp(doc.id));
+    });
+
+    // ADICIONE OU VERIFIQUE ESTE TRECHO PARA AS IMAGENS
+    document.querySelectorAll('.thumbnail-image').forEach(img => {
+        img.addEventListener('click', function() {
+            const modal = document.getElementById("imageModal");
+            const modalImg = document.getElementById("modalImage");
+            if (modal && modalImg) {
+                modal.style.display = "block";
+                modalImg.src = this.dataset.src; // Pega o link da imagem grande do atributo data-src
+            }
+        });
     });
 }
 
@@ -237,4 +255,26 @@ function formatarParaInputDate(timestamp) {
     const mes = String(data.getMonth() + 1).padStart(2, '0');
     const dia = String(data.getDate()).padStart(2, '0');
     return `${ano}-${mes}-${dia}`;
+}
+
+/**
+ * NOVO: Função para buscar os tipos de teste e popular o dropdown de filtro.
+ */
+async function popularFiltroTipoTeste() {
+    const selectFiltro = document.getElementById('filtroTipoTesteCp');
+    try {
+        const tiposTesteSnapshot = await db.collection("TiposTeste")
+            .where("categoria_aplicavel", "in", ["Calçado Pronto", "Ambos"])
+            .orderBy("nome_tipo_teste")
+            .get();
+
+        // Limpa opções antigas (exceto a primeira "Todos")
+        selectFiltro.innerHTML = '<option value="">Todos os Tipos de Teste</option>';
+
+        tiposTesteSnapshot.forEach(doc => {
+            selectFiltro.innerHTML += `<option value="${doc.id}">${doc.data().nome_tipo_teste}</option>`;
+        });
+    } catch (error) {
+        console.error("Erro ao popular filtro de tipos de teste:", error);
+    }
 }

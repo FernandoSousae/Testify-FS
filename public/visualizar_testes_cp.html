@@ -21,29 +21,33 @@
 
             <div class="filtros-container" style="padding: 15px; background-color: #f8f9fa; border-radius: 5px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
     
-            <input type="search" id="buscaCp" placeholder="Buscar por linha ou referência..." style="padding: 8px; flex-grow: 1; border: 1px solid #ccc; border-radius: 4px;">
+                <input type="search" id="buscaCp" placeholder="Buscar por linha ou referência..." style="padding: 8px; flex-grow: 1; border: 1px solid #ccc; border-radius: 4px;">
 
-            <select id="filtroSubCategoriaCp" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                <option value="">Todas as Sub-categorias</option>
-                <option value="Modelo Novo">Modelo Novo</option>
-                <option value="Teste de Produção">Teste de Produção</option>
-            </select>
+                <select id="filtroSubCategoriaCp" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="">Todas as Sub-categorias</option>
+                    <option value="Modelo Novo">Modelo Novo</option>
+                    <option value="Teste de Produção">Teste de Produção</option>
+                </select>
 
-            <select id="filtroResultadoCp" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                <option value="">Todos os Resultados</option>
-                <option value="Aprovado">Aprovado</option>
-                <option value="Reprovado">Reprovado</option>
-                <option value="Em Análise">Em Análise</option>
-            </select>
+                <select id="filtroTipoTesteCp" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="">Todos os Tipos de Teste</option>
+                </select>
 
-            <input type="date" id="filtroDataInicioCp" title="Data de Início do Período" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-            
-            <input type="date" id="filtroDataFimCp" title="Data de Fim do Período" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                <select id="filtroResultadoCp" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="">Todos os Resultados</option>
+                    <option value="Aprovado">Aprovado</option>
+                    <option value="Reprovado">Reprovado</option>
+                    <option value="Em Análise">Em Análise</option>
+                </select>
 
-            <button id="botaoFiltrarCp" class="submit-button" style="background-color: #007bff; padding: 8px 12px; font-size: 0.9em;">Filtrar</button>
-            <button id="botaoLimparFiltrosCp" class="delete-btn" style="background-color: #6c757d; padding: 8px 12px; font-size: 0.9em;">Limpar</button>
+                <input type="date" id="filtroDataInicioCp" title="Data de Início do Período" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                
+                <input type="date" id="filtroDataFimCp" title="Data de Fim do Período" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
 
-        </div>
+                <button id="botaoFiltrarCp" class="submit-button" style="background-color: #007bff; padding: 8px 12px; font-size: 0.9em;">Filtrar</button>
+                <button id="botaoLimparFiltrosCp" class="delete-btn" style="background-color: #6c757d; padding: 8px 12px; font-size: 0.9em;">Limpar</button>
+
+            </div>
 
             <div id="listaTestesCp">
                 <p>A carregar testes...</p>

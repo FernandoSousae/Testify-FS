@@ -140,8 +140,12 @@ function conectarBotoesDaLista(docs) {
 
     document.querySelectorAll('.thumbnail-image').forEach(img => {
         img.addEventListener('click', function() {
-            document.getElementById("modalImage").src = this.dataset.src;
-            document.getElementById("imageModal").style.display = "block";
+            const modal = document.getElementById("imageModal");
+            const modalImg = document.getElementById("modalImage");
+            if(modal && modalImg) {
+                modal.style.display = "block";
+                modalImg.src = this.dataset.src; // Pega o link da imagem grande do atributo data-src
+            }
         });
     });
 }
