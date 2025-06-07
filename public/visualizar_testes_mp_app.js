@@ -30,6 +30,7 @@ auth.onAuthStateChanged(user => {
  * Configura todos os 'ouvintes' de eventos para elementos estáticos da página.
  */
 function configurarListenersDaPagina() {
+    // Listeners dos Filtros
     document.getElementById('botaoFiltrar').addEventListener('click', () => carregarEExibirTestes('primeira'));
     document.getElementById('botaoLimparFiltros').addEventListener('click', () => {
         document.getElementById('buscaPorDescricao').value = '';
@@ -38,13 +39,30 @@ function configurarListenersDaPagina() {
         document.getElementById('filtroDataFim').value = '';
         carregarEExibirTestes('primeira');
     });
-    
+
+    // Listeners dos botões de paginação
     document.getElementById('botaoProximo').addEventListener('click', () => carregarEExibirTestes('proximo'));
     document.getElementById('botaoAnterior').addEventListener('click', () => carregarEExibirTestes('anterior'));
-    
+
+    // Listeners do Modal de Edição
     document.getElementById('formEdicaoTesteMp').addEventListener('submit', salvarEdicaoTesteMp);
     document.getElementById('botaoFecharModalEdicaoTesteMp').addEventListener('click', fecharModalEdicaoTesteMp);
-    // ... (outros listeners)
+    document.getElementById('modalEdicaoTesteMp').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('modalEdicaoTesteMp')) fecharModalEdicaoTesteMp();
+    });
+
+    // **CORREÇÃO AQUI**: Garantindo que os listeners do modal de imagem sejam configurados
+    document.getElementById("closeImageModalBtn").addEventListener('click', fecharModalImagem);
+    document.getElementById("imageModal").addEventListener('click', (e) => {
+        if (e.target === document.getElementById("imageModal")) {
+            fecharModalImagem();
+        }
+    });
+
+    // Listener do Botão de Logout
+    document.getElementById('logoutButton').addEventListener('click', () => {
+        auth.signOut().then(() => window.location.href = 'login.html');
+    });
 }
 
 /**
@@ -197,6 +215,8 @@ function conectarBotoesDaLista(docs) {
         item.querySelector('.edit-test-btn').addEventListener('click', () => abrirModalEdicaoTesteMp(doc.id, doc.data()));
         item.querySelector('.delete-test-btn').addEventListener('click', () => excluirTesteMp(doc.id, doc.data().fotos_material_urls));
     });
+    // **CORREÇÃO AQUI**: O listener para abrir o modal de imagem deve estar aqui,
+    // pois os elementos .thumbnail-image são criados dinamicamente.
     document.querySelectorAll('.thumbnail-image').forEach(img => {
         img.addEventListener('click', function() {
             const modal = document.getElementById("imageModal");

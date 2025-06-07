@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitar Novo Teste - App Testes Ferracini</title>
+    <link rel="stylesheet" href="dashboard_style.css">
+    <link rel="stylesheet" href="global_style.css">
+    <!-- Reutilizando o estilo das páginas de admin para consistência -->
+    <link rel="stylesheet" href="admin_style.css"> 
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <a href="dashboard.html">
+                <img src="img/logo.png" alt="Logo Testify-FS" style="height: 50px; vertical-align: middle;">
+            </a>
+        </div>
+        <div id="userInfo">A carregar...</div>
+        <button id="logoutButton">Sair</button>
+    </header>
+
+    <main>
+        <div class="admin-container">
+            <h2>Solicitar Novo Teste</h2>
+
+            <div class="add-form-container">
+                <h3>Preencha os detalhes da sua solicitação</h3>
+                <form id="formSolicitarTeste" class="admin-form">
+                    
+                    <div>
+                        <label for="categoriaTeste">Qual o tipo de teste necessário?</label>
+                        <select id="categoriaTeste" required>
+                            <option value="">Selecione a Categoria...</option>
+                            <option value="Matéria-Prima">Teste de Matéria-Prima</option>
+                            <option value="Calçado Pronto">Teste de Calçado Pronto</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="descricaoSolicitacao">Descreva o que precisa ser testado (seja o mais detalhado possível):</label>
+                        <textarea id="descricaoSolicitacao" rows="5" placeholder="Ex: Verificar resistência da nova linha de costura no modelo 'Bota X'..." required></textarea>
+                    </div>
+
+                    <div>
+                        <label for="referenciasEnvolvidas">Códigos ou Referências Envolvidas (Opcional):</label>
+                        <input type="text" id="referenciasEnvolvidas" placeholder="Ex: Ref 5880, Fornecedor Y, Lote Z">
+                    </div>
+
+                    <div>
+                        <label for="urgenciaSolicitacao">Nível de Urgência:</label>
+                        <select id="urgenciaSolicitacao" required>
+                            <option value="Normal">Normal</option>
+                            <option value="Urgente">Urgente</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="submit-button">Enviar Solicitação</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; Criado por Fernando Sousa - 2025</p>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="utils.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Lógica de carregamento SIMPLIFICADA e ROBUSTA
+        if (typeof firebaseConfig !== 'undefined' && firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        var scriptPagina = document.createElement('script');
+        // Aponta para o novo arquivo JS que vamos criar
+        scriptPagina.src = 'solicitar_teste_app.js';
+        document.body.appendChild(scriptPagina);
+    </script>
+</body>
+</html>

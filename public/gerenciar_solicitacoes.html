@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Solicitações de Teste - App Testes Ferracini</title>
+    <link rel="stylesheet" href="dashboard_style.css">
+    <link rel="stylesheet" href="global_style.css">
+    <link rel="stylesheet" href="admin_style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <a href="dashboard.html">
+                <img src="img/logo.png" alt="Logo Testify-FS" style="height: 50px; vertical-align: middle;">
+            </a>
+        </div>
+        <div id="userInfo">A carregar...</div>
+        <button id="logoutButton">Sair</button>
+    </header>
+
+    <main>
+        <div class="admin-container">
+            <h2>Gerenciar Solicitações de Teste</h2>
+
+            <!-- Filtros para as solicitações -->
+            <div class="filtros-container" style="padding: 15px; background-color: #f8f9fa; border-radius: 5px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <label for="filtroStatusSolicitacao">Filtrar por Status:</label>
+                <select id="filtroStatusSolicitacao" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="Pendente">Pendentes</option>
+                    <option value="Aprovada">Aprovadas</option>
+                    <option value="Rejeitada">Rejeitadas</option>
+                    <option value="Todos">Mostrar Todos</option>
+                </select>
+            </div>
+
+            <!-- Container para a Lista de Solicitações -->
+            <div class="list-container">
+                <h3>Solicitações Recebidas</h3>
+                <div id="listaSolicitacoes">
+                    <p>A carregar solicitações...</p>
+                    <!-- As solicitações serão listadas aqui pelo JavaScript -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; Criado por Fernando Sousa - 2025</p>
+    </footer>
+
+    <!-- MODAL PARA DETALHES E AÇÕES DA SOLICITAÇÃO -->
+    <div id="modalDetalhesSolicitacao" class="modal">
+        <div class="modal-content">
+            <span class="close-modal-button" id="botaoFecharModalDetalhes">&times;</span>
+            <h3>Detalhes da Solicitação</h3>
+            <div id="conteudoModalDetalhes">
+                <!-- O conteúdo será preenchido pelo JavaScript -->
+            </div>
+            <div class="acoes-solicitacao" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; text-align: right;">
+                <textarea id="observacoesAdminModal" placeholder="Adicionar observações para a equipe..." style="width: 100%; min-height: 80px; margin-bottom: 10px;"></textarea>
+                <button id="botaoRejeitar" class="delete-btn">Rejeitar</button>
+                <button id="botaoAprovar" class="submit-button" style="background-color: #28a745;">Aprovar e Criar Teste</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="utils.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Lógica de carregamento SIMPLIFICADA e ROBUSTA
+        if (typeof firebaseConfig !== 'undefined' && firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        var scriptPagina = document.createElement('script');
+        // Aponta para o novo arquivo JS que vamos criar
+        scriptPagina.src = 'gerenciar_solicitacoes_app.js';
+        document.body.appendChild(scriptPagina);
+    </script>
+</body>
+</html>
