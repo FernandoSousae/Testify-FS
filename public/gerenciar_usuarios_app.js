@@ -157,15 +157,19 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
         modalEdicaoUsuario.style.display = 'block';
     }
 
-    // Função para salvar as alterações do usuário (apenas tipo por enquanto)
+    // VERSÃO NOVA (SALVA NOME, EMAIL E TIPO)
     function salvarEdicaoUsuario() {
         if (!formEdicaoUsuario || !hiddenUserIdEdicao || !selectTipoEdicao) return;
 
-        const userId = hiddenUserIdEdicao.value;
-        const novoTipo = selectTipoEdicao.value;
-        const novoNome = inputNomeEdicao.value; // Embora o campo esteja readonly, vamos pegar o valor
+        const userId = document.getElementById('hiddenUserIdEdicao').value;
+        const novoNome = document.getElementById('nomeUsuarioEdicao').value;
+        const novoEmail = document.getElementById('emailUsuarioEdicao').value;
+        const novoTipo = document.getElementById('tipoUsuarioEdicao').value;
 
-        console.log(`Salvando edição para User ID: ${userId}, Novo Nome: ${novoNome}, Novo Tipo: ${novoTipo}`);
+        if (!novoNome || !novoEmail || !novoTipo) {
+            showToast("Todos os campos são obrigatórios.", "error");
+            return;
+        }
         
         const submitButton = formEdicaoUsuario.querySelector('button[type="submit"]');
         if(submitButton) {
@@ -173,9 +177,11 @@ if (typeof firebase === 'undefined' || typeof firebase.auth === 'undefined' || t
             submitButton.textContent = 'A salvar...';
         }
 
+        // Objeto atualizado com todos os campos
         db.collection("Usuarios").doc(userId).update({
-            tipo_usuario: novoTipo,
-            nome_usuario: novoNome // Adicionamos a atualização do nome, embora o campo esteja readonly
+            nome_usuario: novoNome,
+            email_usuario: novoEmail,
+            tipo_usuario: novoTipo
         })
         .then(() => {
             console.log("Dados do utilizador atualizados com sucesso no Firestore!");

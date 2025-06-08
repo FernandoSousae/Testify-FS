@@ -72,3 +72,16 @@ body {
     height: auto;    /* Mantém a proporção da imagem ao ajustar a largura */
     margin-bottom: 20px; /* Adiciona um espaço abaixo do logo */
 }
+
+.forgot-password-link, .back-to-login-link {
+    text-align: center;
+    margin-top: 15px;
+}
+.forgot-password-link a, .back-to-login-link a {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+#resetContainer {
+    /* Mesmo estilo do #loginContainer */
+}

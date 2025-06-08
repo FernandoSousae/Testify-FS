@@ -7,11 +7,13 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="global_styles.css">
 </head>
+<body>
     <div id="loginContainer">
         <div>
-            <img src="img/logo.png" alt="Logo da Empresa Ferracini Testes">
+            <img src="img/logo.png" alt="Logo da Empresa">
         </div>
 
+        <!-- Formulário de Login Principal -->
         <form id="loginForm">
             <div>
                 <label for="email">Email:</label>
@@ -25,20 +27,46 @@
                 <button type="submit">Entrar</button>
             </div>
         </form>
+
+        <!-- NOVO: Link para Redefinir Senha -->
+        <div class="forgot-password-link">
+            <a href="#" id="esqueciSenhaLink">Esqueceu a senha?</a>
+        </div>
     </div>
 
+    <!-- NOVO: Container para Redefinição de Senha (escondido por defeito) -->
+    <div id="resetContainer" style="display: none;">
+        <h3>Redefinir Senha</h3>
+        <p>Digite o seu email para receber um link de redefinição de senha.</p>
+        <form id="resetForm">
+            <div>
+                <label for="resetEmail">Email:</label>
+                <input type="email" id="resetEmail" name="resetEmail" placeholder="seuemail@exemplo.com" required>
+            </div>
+            <div>
+                <button type="submit">Enviar Link de Redefinição</button>
+            </div>
+        </form>
+        <div class="back-to-login-link">
+            <a href="#" id="voltarLoginLink">Voltar para o Login</a>
+        </div>
+    </div>
+
+    <!-- Notificação Toast (sem alterações) -->
     <div id="toastNotification" class="toast">
         <span id="toastMessage"></span>
     </div>
 
-    <script src="firebase-config.js"></script> <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <!-- Scripts (sem alterações) -->
+    <script src="firebase-config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script> <script>
-    // A variável firebaseConfig agora vem do arquivo firebase-config.js
-    firebase.initializeApp(firebaseConfig);
-    console.log("Firebase SDK inicializado!");
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script>
+        if (typeof firebaseConfig !== 'undefined' && firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
     </script>
-
     <script src="utils.js"></script>
     <script src="auth.js"></script>
 </body>
