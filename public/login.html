@@ -1,67 +1,82 @@
 <!DOCTYPE html>
-<lang="pt-br">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - App Testes Ferracini</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="global_styles.css">
+    
+    <!-- ESTILOS EMBUTIDOS E CORRIGIDOS -->
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f7f6;
+        }
+        #loginContainer, #resetContainer {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        /* NOVA REGRA: Garante que o elemento seja escondido */
+        .hidden {
+            display: none !important;
+        }
+        #loginContainer img { max-width: 180px; margin-bottom: 20px; }
+        #loginContainer div, #resetContainer div { margin-bottom: 15px; text-align: left; }
+        h3 { text-align: center; color: #333; margin-bottom: 10px; }
+        p { text-align: center; margin-bottom: 20px; color: #666; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input[type="email"], input[type="password"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s; }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #a0a0a0; cursor: not-allowed; }
+        .forgot-password-link, .back-to-login-link { text-align: center; margin-top: 20px; }
+        .forgot-password-link a, .back-to-login-link a { color: #007bff; text-decoration: none; font-size: 0.9em; }
+        .toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 100; left: 50%; transform: translateX(-50%); bottom: 30px; font-size: 17px; transition: visibility 0.5s, opacity 0.5s linear; opacity: 0; }
+        .toast.show { visibility: visible; opacity: 1; }
+        .toast.success { background-color: #28a745; }
+        .toast.error { background-color: #dc3545; }
+    </style>
 </head>
 <body>
+    <!-- Container de Login (agora sem a classe 'hidden' por defeito) -->
     <div id="loginContainer">
         <div>
-            <img src="img/logo.png" alt="Logo da Empresa">
+            <img src="img/logo.png" alt="Logo Testify-FS">
         </div>
-
-        <!-- Formulário de Login Principal -->
         <form id="loginForm">
-            <div>
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" placeholder="seuemail@exemplo.com" required>
-            </div>
-            <div>
-                <label for="senha">Senha:</label>
-                <input type="password" id="senha" name="senha" placeholder="Sua senha" required>
-            </div>
-            <div>
-                <button type="submit">Entrar</button>
-            </div>
+            <div><label for="email">Email:</label><input type="email" id="email" name="email" placeholder="seuemail@exemplo.com" required></div>
+            <div><label for="senha">Senha:</label><input type="password" id="senha" name="senha" placeholder="Sua senha" required></div>
+            <div><button type="submit">Entrar</button></div>
         </form>
-
-        <!-- NOVO: Link para Redefinir Senha -->
-        <div class="forgot-password-link">
-            <a href="#" id="esqueciSenhaLink">Esqueceu a senha?</a>
-        </div>
+        <div class="forgot-password-link"><a href="#" id="esqueciSenhaLink">Esqueceu a senha?</a></div>
     </div>
 
-    <!-- NOVO: Container para Redefinição de Senha (escondido por defeito) -->
-    <div id="resetContainer" style="display: none;">
+    <!-- Container de Reset (agora COM a classe 'hidden' por defeito) -->
+    <div id="resetContainer" class="hidden">
         <h3>Redefinir Senha</h3>
-        <p>Digite o seu email para receber um link de redefinição de senha.</p>
+        <p>Digite o seu email para receber um link de redefinição.</p>
         <form id="resetForm">
-            <div>
-                <label for="resetEmail">Email:</label>
-                <input type="email" id="resetEmail" name="resetEmail" placeholder="seuemail@exemplo.com" required>
-            </div>
-            <div>
-                <button type="submit">Enviar Link de Redefinição</button>
-            </div>
+            <div><label for="resetEmail">Email:</label><input type="email" id="resetEmail" name="resetEmail" placeholder="seuemail@exemplo.com" required></div>
+            <div><button type="submit">Enviar Link de Redefinição</button></div>
         </form>
-        <div class="back-to-login-link">
-            <a href="#" id="voltarLoginLink">Voltar para o Login</a>
-        </div>
+        <div class="back-to-login-link"><a href="#" id="voltarLoginLink">Voltar para o Login</a></div>
     </div>
 
-    <!-- Notificação Toast (sem alterações) -->
-    <div id="toastNotification" class="toast">
-        <span id="toastMessage"></span>
-    </div>
+    <div id="toastNotification" class="toast"><span id="toastMessage"></span></div>
 
-    <!-- Scripts (sem alterações) -->
+    <!-- Scripts -->
     <script src="firebase-config.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
     <script>
         if (typeof firebaseConfig !== 'undefined' && firebase.apps.length === 0) {
             firebase.initializeApp(firebaseConfig);

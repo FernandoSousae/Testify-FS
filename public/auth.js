@@ -1,43 +1,38 @@
-// Espera o conteúdo da página carregar completamente
 document.addEventListener('DOMContentLoaded', function() {
     console.log("auth.js carregado e DOM pronto!");
 
     const auth = firebase.auth();
 
-    // --- LÓGICA DE LOGIN (SEU CÓDIGO EXISTENTE) ---
+    // --- LÓGICA DE LOGIN ---
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
-        const emailInput = document.getElementById('email');
-        const senhaInput = document.getElementById('senha');
-
         loginForm.addEventListener('submit', function(event) {
             event.preventDefault(); 
-            const email = emailInput.value;
-            const senha = senhaInput.value;
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
 
             auth.signInWithEmailAndPassword(email, senha)
-                .then((userCredential) => {
-                    console.log("Login bem-sucedido!", userCredential.user);
+                .then(() => {
                     window.location.href = 'dashboard.html';
                 })
                 .catch((error) => {
-                    const errorCode = error.code;
-                    console.error("Erro no login:", errorCode, error.message);
-
-                    let mensagemErroUsuario = "Ocorreu um erro ao tentar fazer login. Verifique suas credenciais.";
-                    if (errorCode === 'auth/user-not-found') {
-                        mensagemErroUsuario = "Usuário não encontrado. Verifique o e-mail digitado.";
-                    } else if (errorCode === 'auth/wrong-password') {
-                        mensagemErroUsuario = "Senha incorreta. Tente novamente.";
-                    } else if (errorCode === 'auth/invalid-email') {
-                        mensagemErroUsuario = "O formato do e-mail é inválido.";
+                    let mensagemErroUsuario = "Ocorreu um erro. Verifique as suas credenciais.";
+                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                        mensagemErroUsuario = "Email ou senha incorretos.";
+                    } else if (error.code === 'auth/invalid-email') {
+                        mensagemErroUsuario = "O formato do email é inválido.";
                     }
-                    showToast(mensagemErroUsuario, "error");
+                    // A função showToast deve existir no seu ficheiro utils.js
+                    if (typeof showToast === 'function') {
+                        showToast(mensagemErroUsuario, "error");
+                    } else {
+                        alert(mensagemErroUsuario);
+                    }
                 });
         });
     }
 
-    // --- NOVO: LÓGICA PARA REDEFINIÇÃO DE SENHA ---
+    // --- LÓGICA PARA REDEFINIÇÃO DE SENHA (CORRIGIDA) ---
     const loginContainer = document.getElementById('loginContainer');
     const resetContainer = document.getElementById('resetContainer');
     const esqueciSenhaLink = document.getElementById('esqueciSenhaLink');
@@ -48,8 +43,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (esqueciSenhaLink) {
         esqueciSenhaLink.addEventListener('click', function(e) {
             e.preventDefault();
-            loginContainer.style.display = 'none';
-            resetContainer.style.display = 'block';
+            // Trocamos 'style.display' pela manipulação de classes
+            loginContainer.classList.add('hidden');
+            resetContainer.classList.remove('hidden');
         });
     }
 
@@ -57,29 +53,27 @@ document.addEventListener('DOMContentLoaded', function() {
     if (voltarLoginLink) {
         voltarLoginLink.addEventListener('click', function(e) {
             e.preventDefault();
-            resetContainer.style.display = 'none';
-            loginContainer.style.display = 'block';
+            // Trocamos 'style.display' pela manipulação de classes
+            resetContainer.classList.add('hidden');
+            loginContainer.classList.remove('hidden');
         });
     }
 
     // Lógica para enviar o email de redefinição
     if (resetForm) {
-        const resetEmailInput = document.getElementById('resetEmail');
         resetForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const email = resetEmailInput.value;
+            const email = document.getElementById('resetEmail').value;
             const submitButton = resetForm.querySelector('button[type="submit"]');
             submitButton.disabled = true;
             submitButton.textContent = 'A enviar...';
 
             auth.sendPasswordResetEmail(email).then(() => {
                 showToast("Email de redefinição enviado com sucesso! Verifique a sua caixa de entrada.", "success");
-                // Volta para a tela de login após o sucesso
                 setTimeout(() => {
-                    resetContainer.style.display = 'none';
-                    loginContainer.style.display = 'block';
-                }, 4000); // Aguarda 4 segundos para o utilizador ler o toast
-
+                    resetContainer.classList.add('hidden');
+                    loginContainer.classList.remove('hidden');
+                }, 4000); 
             }).catch((error) => {
                 let mensagemErro = "Ocorreu um erro ao enviar o email.";
                 if (error.code === 'auth/user-not-found') {
