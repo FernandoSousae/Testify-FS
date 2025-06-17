@@ -16,6 +16,9 @@ let paginaAtualCp = 1;
 let galeriaImagensAtual = [];
 let indiceImagemAtual = 0;
 
+// --- VARIÁVEL PARA CONTROLE DE EXCLUSÃO DE FOTOS NO MODAL ---
+let urlsParaExcluirCp = [];
+
 auth.onAuthStateChanged(user => {
     if (user) {
         mainContent.style.display = 'block';
@@ -57,7 +60,7 @@ function configurarListenersDaPaginaCp() {
     });
 }
 
-// --- NOVAS FUNÇÕES DA GALERIA ---
+// --- FUNÇÕES DA GALERIA ---
 function abrirModalImagem(urls, startIndex) {
     const modal = document.getElementById("imageModal");
     const modalImg = document.getElementById("modalImage");
@@ -97,7 +100,6 @@ function navegarComTeclado(e) {
         fecharModalImagem();
     }
 }
-// --- FIM DAS FUNÇÕES DA GALERIA ---
 
 function conectarBotoesDaListaCp(docs) {
     const itens = listaTestesCpDiv.querySelectorAll('.item-teste');
@@ -105,7 +107,6 @@ function conectarBotoesDaListaCp(docs) {
         item.querySelector('.edit-test-cp-btn').addEventListener('click', () => abrirModalEdicaoTesteCp(docs[i].id, docs[i].data()));
         item.querySelector('.delete-test-cp-btn').addEventListener('click', () => excluirTesteCp(docs[i].id, docs[i].data().fotos_calcado_urls));
 
-        // Lógica de clique nas miniaturas (corrigida e melhorada)
         const thumbnails = item.querySelectorAll('.thumbnail-image');
         const urlsDasImagensDoItem = Array.from(thumbnails).map(t => t.dataset.src);
         
@@ -117,7 +118,6 @@ function conectarBotoesDaListaCp(docs) {
     });
 }
 
-// O restante do arquivo continua aqui (sem alterações)
 async function popularFiltroTipoTeste() {
     const selectFiltro = document.getElementById('filtroTipoTesteCp');
     try {
@@ -138,6 +138,7 @@ async function carregarEExibirTestesCp(direcao = 'primeira') {
         
         let queryPaginada;
         if (direcao === 'primeira') {
+            paginaAtualCp = 1;
             queryPaginada = query.orderBy("data_inicio_teste", "desc").limit(TAMANHO_PAGINA_CP);
         } else if (direcao === 'proximo' && ultimoDocumentoDaPaginaCp) {
             queryPaginada = query.orderBy("data_inicio_teste", "desc").startAfter(ultimoDocumentoDaPaginaCp).limit(TAMANHO_PAGINA_CP);
@@ -238,6 +239,9 @@ async function abrirModalEdicaoTesteCp(id, dados) {
     document.getElementById('resultadoTesteCpEdicao').value = dados.resultado;
     document.getElementById('observacoesTesteCpEdicao').value = dados.observacoes_gerais || '';
     
+    // Limpa a lista de fotos a excluir
+    urlsParaExcluirCp = [];
+
     const selectTipoTeste = document.getElementById('tipoTesteCpEdicao');
     selectTipoTeste.innerHTML = '<option value="">A carregar...</option>';
     const snapshot = await db.collection("TiposTeste").where("categoria_aplicavel", "in", ["Calçado Pronto", "Ambos"]).get();
@@ -247,7 +251,24 @@ async function abrirModalEdicaoTesteCp(id, dados) {
     const fotosContainer = document.getElementById('fotosExistentesCpContainer');
     const urlsFotos = dados.fotos_calcado_urls || [];
     if (urlsFotos.length > 0) {
-        fotosContainer.innerHTML = urlsFotos.map(url => `<img src="${url}" alt="Foto existente">`).join('');
+        fotosContainer.innerHTML = urlsFotos.map(url => `
+            <div class="photo-wrapper">
+                <img src="${url}" alt="Foto existente">
+                <button type="button" class="delete-photo-btn" data-url="${encodeURIComponent(url)}">&times;</button>
+            </div>
+        `).join('');
+
+        fotosContainer.querySelectorAll('.delete-photo-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const urlParaExcluir = decodeURIComponent(this.dataset.url);
+                if (!urlsParaExcluirCp.includes(urlParaExcluir)) {
+                    urlsParaExcluirCp.push(urlParaExcluir);
+                }
+                this.parentElement.style.display = 'none';
+                showToast("Foto marcada para exclusão.", "info");
+            });
+        });
     } else {
         fotosContainer.innerHTML = '<p>Nenhuma foto cadastrada para este teste.</p>';
     }
@@ -266,40 +287,31 @@ async function salvarEdicaoTesteCp(event) {
     const user = auth.currentUser;
     if (!user) {
         showToast("Usuário não autenticado. Faça login novamente.", "error");
+        btn.disabled = false;
+        btn.textContent = 'Salvar Alterações';
         return;
     }
 
-    const inputNovasFotos = document.getElementById('fotosCalcadoEdicao');
-    const arquivos = inputNovasFotos.files;
-    const novasUrlsFotos = [];
-
-    if (arquivos.length > 0) {
-        btn.textContent = 'Enviando fotos...';
-        const uploadPromises = [];
-        for (let i = 0; i < arquivos.length; i++) {
-            const arquivo = arquivos[i];
-            const nomeArquivo = `testes_calcado_pronto_fotos/${user.uid}_${Date.now()}_${arquivo.name}`;
-            const arquivoRef = storage.ref(nomeArquivo);
-            uploadPromises.push(arquivoRef.put(arquivo).then(snapshot => snapshot.ref.getDownloadURL()));
-        }
-        try {
-            const urlsResolvidas = await Promise.all(uploadPromises);
-            novasUrlsFotos.push(...urlsResolvidas);
-        } catch (error) {
-            handleError("Erro no upload das novas fotos. As alterações não foram salvas.", error);
-            btn.disabled = false;
-            btn.textContent = 'Salvar Alterações';
-            return;
-        }
-    }
-
-    btn.textContent = 'A salvar dados...';
     try {
+        const inputNovasFotos = document.getElementById('fotosCalcadoEdicao');
+        const arquivos = inputNovasFotos.files;
+        let novasUrlsFotos = [];
+        if (arquivos.length > 0) {
+            btn.textContent = 'Enviando fotos...';
+            const uploadPromises = Array.from(arquivos).map(arquivo => {
+                const nomeArquivo = `testes_calcado_pronto_fotos/${user.uid}_${Date.now()}_${arquivo.name}`;
+                const arquivoRef = storage.ref(nomeArquivo);
+                return arquivoRef.put(arquivo).then(snapshot => snapshot.ref.getDownloadURL());
+            });
+            novasUrlsFotos = await Promise.all(uploadPromises);
+        }
+
+        btn.textContent = 'A salvar dados...';
         const testeDocRef = db.collection("TestesCalcadoPronto").doc(id);
         const testeDoc = await testeDocRef.get();
         const dadosAtuais = testeDoc.data();
         
-        const urlsFotosExistentes = dadosAtuais.fotos_calcado_urls || [];
+        const urlsFotosExistentes = (dadosAtuais.fotos_calcado_urls || []).filter(url => !urlsParaExcluirCp.includes(url));
         const urlsCombinadas = [...urlsFotosExistentes, ...novasUrlsFotos];
         
         const dados = {
@@ -316,9 +328,16 @@ async function salvarEdicaoTesteCp(event) {
         };
 
         await testeDocRef.update(dados);
+
+        if (urlsParaExcluirCp.length > 0) {
+            const deletePromises = urlsParaExcluirCp.map(url => storage.refFromURL(url).delete());
+            await Promise.all(deletePromises);
+        }
+
         showToast("Teste atualizado com sucesso!", "success");
         fecharModalEdicaoTesteCp();
         carregarEExibirTestesCp('primeira');
+
     } catch (e) {
         handleError("Erro ao atualizar o teste:", e);
     } finally {
@@ -328,10 +347,11 @@ async function salvarEdicaoTesteCp(event) {
 }
 
 async function excluirTesteCp(id, urlsFotos) {
-    if (!confirm("Tem certeza que deseja excluir este teste?")) return;
+    if (!confirm("Tem certeza que deseja excluir este teste? Esta ação também excluirá todas as fotos associadas.")) return;
     try {
         if (urlsFotos && urlsFotos.length > 0) {
-            await Promise.all(urlsFotos.map(url => storage.refFromURL(url).delete()));
+            const deletePromises = urlsFotos.map(url => storage.refFromURL(url).delete());
+            await Promise.all(deletePromises);
         }
         await db.collection("TestesCalcadoPronto").doc(id).delete();
         showToast("Teste excluído com sucesso!", "success");

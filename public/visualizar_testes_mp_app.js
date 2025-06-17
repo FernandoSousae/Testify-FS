@@ -18,6 +18,10 @@ let paginaAtual = 1;
 let galeriaImagensAtual = [];
 let indiceImagemAtual = 0;
 
+// --- VARIÁVEL PARA CONTROLE DE EXCLUSÃO DE FOTOS NO MODAL ---
+let urlsParaExcluir = [];
+
+
 // --- PONTO DE ENTRADA PRINCIPAL E AUTORIZAÇÃO ---
 auth.onAuthStateChanged(user => {
     if (user) {
@@ -57,7 +61,7 @@ function configurarListenersDaPagina() {
     });
 }
 
-// --- NOVAS FUNÇÕES DA GALERIA ---
+// --- FUNÇÕES DA GALERIA ---
 function abrirModalImagem(urls, startIndex) {
     const modal = document.getElementById("imageModal");
     const modalImg = document.getElementById("modalImage");
@@ -97,7 +101,6 @@ function navegarComTeclado(e) {
         fecharModalImagem();
     }
 }
-// --- FIM DAS FUNÇÕES DA GALERIA ---
 
 function conectarBotoesDaLista(docs) {
     const itensDaLista = listaTestesMpDiv.querySelectorAll('.item-teste');
@@ -106,7 +109,6 @@ function conectarBotoesDaLista(docs) {
         item.querySelector('.edit-test-btn').addEventListener('click', () => abrirModalEdicaoTesteMp(doc.id, doc.data()));
         item.querySelector('.delete-test-btn').addEventListener('click', () => excluirTesteMp(doc.id, doc.data().fotos_material_urls));
 
-        // Lógica de clique nas miniaturas (corrigida e melhorada)
         const thumbnails = item.querySelectorAll('.thumbnail-image');
         const urlsDasImagensDoItem = Array.from(thumbnails).map(t => t.dataset.src);
 
@@ -118,8 +120,6 @@ function conectarBotoesDaLista(docs) {
     });
 }
 
-
-// O restante do arquivo continua aqui (sem alterações)
 async function carregarEExibirTestes(direcao = 'primeira') {
     if (!listaTestesMpDiv) return;
     listaTestesMpDiv.innerHTML = '<p>A carregar testes...</p>';
@@ -252,6 +252,9 @@ async function abrirModalEdicaoTesteMp(id, dados) {
     document.getElementById('resultadoTesteEdicao').value = dados.resultado;
     document.getElementById('observacoesTesteEdicao').value = dados.observacoes || '';
     
+    // Limpa a lista de fotos a excluir
+    urlsParaExcluir = [];
+
     const selectMateriaPrima = document.getElementById('materiaPrimaEdicao');
     const selectTipoTeste = document.getElementById('tipoTesteEdicao');
     selectMateriaPrima.innerHTML = '<option value="">A carregar...</option>';
@@ -270,7 +273,30 @@ async function abrirModalEdicaoTesteMp(id, dados) {
     const fotosContainer = document.getElementById('fotosExistentesContainer');
     const urlsFotos = dados.fotos_material_urls || [];
     if (urlsFotos.length > 0) {
-        fotosContainer.innerHTML = urlsFotos.map(url => `<img src="${url}" alt="Foto existente">`).join('');
+        // Gera o HTML para cada foto com um botão de exclusão
+        fotosContainer.innerHTML = urlsFotos.map(url => `
+            <div class="photo-wrapper">
+                <img src="${url}" alt="Foto existente">
+                <button type="button" class="delete-photo-btn" data-url="${encodeURIComponent(url)}">&times;</button>
+            </div>
+        `).join('');
+
+        // Adiciona os event listeners para os novos botões de exclusão
+        fotosContainer.querySelectorAll('.delete-photo-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault(); // Impede o submit do formulário
+                const urlParaExcluir = decodeURIComponent(this.dataset.url);
+                
+                // Adiciona a URL à lista de exclusão se ainda não estiver lá
+                if (!urlsParaExcluir.includes(urlParaExcluir)) {
+                    urlsParaExcluir.push(urlParaExcluir);
+                }
+                
+                // Remove o elemento da foto da tela para feedback visual imediato
+                this.parentElement.style.display = 'none';
+                showToast("Foto marcada para exclusão.", "info");
+            });
+        });
     } else {
         fotosContainer.innerHTML = '<p>Nenhuma foto cadastrada para este teste.</p>';
     }
@@ -289,42 +315,37 @@ async function salvarEdicaoTesteMp(event) {
     const user = auth.currentUser;
     if (!user) {
         showToast("Usuário não autenticado. Faça login novamente.", "error");
+        submitButton.disabled = false;
+        submitButton.textContent = 'Salvar Alterações';
         return;
     }
 
-    const inputNovasFotos = document.getElementById('fotosMaterialEdicao');
-    const arquivos = inputNovasFotos.files;
-    const novasUrlsFotos = [];
-
-    if (arquivos.length > 0) {
-        submitButton.textContent = 'Enviando fotos...';
-        const uploadPromises = [];
-        for (let i = 0; i < arquivos.length; i++) {
-            const arquivo = arquivos[i];
-            const nomeArquivo = `testes_materia_prima_fotos/${user.uid}_${Date.now()}_${arquivo.name}`;
-            const arquivoRef = storage.ref(nomeArquivo);
-            uploadPromises.push(arquivoRef.put(arquivo).then(snapshot => snapshot.ref.getDownloadURL()));
-        }
-        try {
-            const urlsResolvidas = await Promise.all(uploadPromises);
-            novasUrlsFotos.push(...urlsResolvidas);
-        } catch (error) {
-            handleError("Erro no upload das novas fotos. As alterações não foram salvas.", error);
-            submitButton.disabled = false;
-            submitButton.textContent = 'Salvar Alterações';
-            return;
-        }
-    }
-    
-    submitButton.textContent = 'A salvar dados...';
     try {
+        // 1. Upload de novas fotos
+        const inputNovasFotos = document.getElementById('fotosMaterialEdicao');
+        const arquivos = inputNovasFotos.files;
+        let novasUrlsFotos = [];
+        if (arquivos.length > 0) {
+            submitButton.textContent = 'Enviando fotos...';
+            const uploadPromises = Array.from(arquivos).map(arquivo => {
+                const nomeArquivo = `testes_materia_prima_fotos/${user.uid}_${Date.now()}_${arquivo.name}`;
+                const arquivoRef = storage.ref(nomeArquivo);
+                return arquivoRef.put(arquivo).then(snapshot => snapshot.ref.getDownloadURL());
+            });
+            novasUrlsFotos = await Promise.all(uploadPromises);
+        }
+        
+        submitButton.textContent = 'A salvar dados...';
+        
+        // 2. Obter URLs atuais e filtrar as que foram marcadas para exclusão
         const testeDocRef = db.collection("TestesMateriaPrima").doc(id);
         const testeDoc = await testeDocRef.get();
         const dadosAtuais = testeDoc.data();
         
-        const urlsFotosExistentes = dadosAtuais.fotos_material_urls || [];
+        const urlsFotosExistentes = (dadosAtuais.fotos_material_urls || []).filter(url => !urlsParaExcluir.includes(url));
         const urlsCombinadas = [...urlsFotosExistentes, ...novasUrlsFotos];
 
+        // 3. Preparar dados para atualização
         const dadosAtualizados = {
             id_materia_prima: document.getElementById('materiaPrimaEdicao').value,
             id_tipo_teste: document.getElementById('tipoTesteEdicao').value,
@@ -335,10 +356,19 @@ async function salvarEdicaoTesteMp(event) {
             data_ultima_modificacao: firebase.firestore.FieldValue.serverTimestamp()
         };
 
+        // 4. Atualizar o documento no Firestore
         await testeDocRef.update(dadosAtualizados);
+
+        // 5. Excluir as fotos marcadas do Storage
+        if (urlsParaExcluir.length > 0) {
+            const deletePromises = urlsParaExcluir.map(url => storage.refFromURL(url).delete());
+            await Promise.all(deletePromises);
+        }
+
         showToast("Teste atualizado com sucesso!", "success");
         fecharModalEdicaoTesteMp();
         carregarEExibirTestes('primeira');
+
     } catch (error) {
         handleError("Erro ao atualizar o teste:", error);
     } finally {
@@ -348,10 +378,11 @@ async function salvarEdicaoTesteMp(event) {
 }
 
 async function excluirTesteMp(id, urlsFotos) {
-    if (!confirm("Tem certeza que deseja excluir este teste?")) return;
+    if (!confirm("Tem certeza que deseja excluir este teste? Esta ação também excluirá todas as fotos associadas.")) return;
     try {
         if (urlsFotos && urlsFotos.length > 0) {
-            await Promise.all(urlsFotos.map(url => storage.refFromURL(url).delete()));
+            const deletePromises = urlsFotos.map(url => storage.refFromURL(url).delete());
+            await Promise.all(deletePromises);
         }
         await db.collection("TestesMateriaPrima").doc(id).delete();
         showToast("Teste excluído com sucesso!", "success");
