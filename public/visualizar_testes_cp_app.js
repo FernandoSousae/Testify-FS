@@ -12,6 +12,10 @@ let primeiroDocumentoDaPaginaCp = null;
 let ultimoDocumentoDaPaginaCp = null;
 let paginaAtualCp = 1;
 
+// --- VARIÁVEIS DE ESTADO PARA A GALERIA DE IMAGENS ---
+let galeriaImagensAtual = [];
+let indiceImagemAtual = 0;
+
 auth.onAuthStateChanged(user => {
     if (user) {
         mainContent.style.display = 'block';
@@ -42,14 +46,78 @@ function configurarListenersDaPaginaCp() {
     document.getElementById('modalEdicaoTesteCp').addEventListener('click', (e) => {
         if (e.target === document.getElementById('modalEdicaoTesteCp')) fecharModalEdicaoTesteCp();
     });
-    const modalImagem = document.getElementById("imageModal");
-    document.getElementById("closeImageModalBtn").addEventListener('click', () => modalImagem.style.display = 'none');
-    if (modalImagem) modalImagem.addEventListener('click', (e) => { if (e.target === modalImagem) modalImagem.style.display = 'none'; });
+    
+    // Listeners do Modal de Imagem (com as setas)
+    document.getElementById("closeImageModalBtn").addEventListener('click', fecharModalImagem);
+    document.getElementById('modalNextBtn').addEventListener('click', mostrarProximaImagem);
+    document.getElementById('modalPrevBtn').addEventListener('click', mostrarImagemAnterior);
+
     document.getElementById('logoutButton').addEventListener('click', () => {
         auth.signOut().then(() => window.location.href = 'login.html');
     });
 }
 
+// --- NOVAS FUNÇÕES DA GALERIA ---
+function abrirModalImagem(urls, startIndex) {
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImage");
+    if (!modal || !modalImg) return;
+
+    galeriaImagensAtual = urls;
+    indiceImagemAtual = startIndex;
+    
+    modalImg.src = galeriaImagensAtual[indiceImagemAtual];
+    modal.style.display = "block";
+
+    document.addEventListener('keydown', navegarComTeclado);
+}
+
+function fecharModalImagem() {
+    const modal = document.getElementById('imageModal');
+    if (modal) modal.style.display = 'none';
+    document.removeEventListener('keydown', navegarComTeclado);
+}
+
+function mostrarProximaImagem() {
+    indiceImagemAtual = (indiceImagemAtual + 1) % galeriaImagensAtual.length;
+    document.getElementById('modalImage').src = galeriaImagensAtual[indiceImagemAtual];
+}
+
+function mostrarImagemAnterior() {
+    indiceImagemAtual = (indiceImagemAtual - 1 + galeriaImagensAtual.length) % galeriaImagensAtual.length;
+    document.getElementById('modalImage').src = galeriaImagensAtual[indiceImagemAtual];
+}
+
+function navegarComTeclado(e) {
+    if (e.key === "ArrowRight") {
+        mostrarProximaImagem();
+    } else if (e.key === "ArrowLeft") {
+        mostrarImagemAnterior();
+    } else if (e.key === "Escape") {
+        fecharModalImagem();
+    }
+}
+// --- FIM DAS FUNÇÕES DA GALERIA ---
+
+function conectarBotoesDaListaCp(docs) {
+    const itens = listaTestesCpDiv.querySelectorAll('.item-teste');
+    itens.forEach((item, i) => {
+        item.querySelector('.edit-test-cp-btn').addEventListener('click', () => abrirModalEdicaoTesteCp(docs[i].id, docs[i].data()));
+        item.querySelector('.delete-test-cp-btn').addEventListener('click', () => excluirTesteCp(docs[i].id, docs[i].data().fotos_calcado_urls));
+
+        // Lógica de clique nas miniaturas (corrigida e melhorada)
+        const thumbnails = item.querySelectorAll('.thumbnail-image');
+        const urlsDasImagensDoItem = Array.from(thumbnails).map(t => t.dataset.src);
+        
+        thumbnails.forEach((img, idx) => {
+            img.addEventListener('click', function() {
+                abrirModalImagem(urlsDasImagensDoItem, idx);
+            });
+        });
+    });
+}
+
+// O restante do arquivo continua aqui (sem alterações)
 async function popularFiltroTipoTeste() {
     const selectFiltro = document.getElementById('filtroTipoTesteCp');
     try {
@@ -159,24 +227,6 @@ function atualizarEstadoBotoesCp(tamanhoResultado, direcao) {
     botaoProximo.style.cursor = botaoProximo.disabled ? 'not-allowed' : 'pointer';
 }
 
-function conectarBotoesDaListaCp(docs) {
-    const itens = listaTestesCpDiv.querySelectorAll('.item-teste');
-    itens.forEach((item, i) => {
-        item.querySelector('.edit-test-cp-btn').addEventListener('click', () => abrirModalEdicaoTesteCp(docs[i].id, docs[i].data()));
-        item.querySelector('.delete-test-cp-btn').addEventListener('click', () => excluirTesteCp(docs[i].id, docs[i].data().fotos_calcado_urls));
-    });
-    document.querySelectorAll('.thumbnail-image').forEach(img => {
-        img.addEventListener('click', function() {
-            const modal = document.getElementById("imageModal");
-            const modalImg = document.getElementById("modalImage");
-            if (modal && modalImg) {
-                modal.style.display = "block";
-                modalImg.src = this.dataset.src;
-            }
-        });
-    });
-}
-
 async function abrirModalEdicaoTesteCp(id, dados) {
     const modal = document.getElementById('modalEdicaoTesteCp');
     document.getElementById('hiddenTesteCpIdEdicao').value = id;
@@ -194,7 +244,6 @@ async function abrirModalEdicaoTesteCp(id, dados) {
     selectTipoTeste.innerHTML = snapshot.docs.map(doc => `<option value="${doc.id}">${doc.data().nome_tipo_teste}</option>`).join('');
     selectTipoTeste.value = dados.id_tipo_teste;
 
-    // NOVO: Carrega as fotos existentes
     const fotosContainer = document.getElementById('fotosExistentesCpContainer');
     const urlsFotos = dados.fotos_calcado_urls || [];
     if (urlsFotos.length > 0) {
@@ -202,7 +251,7 @@ async function abrirModalEdicaoTesteCp(id, dados) {
     } else {
         fotosContainer.innerHTML = '<p>Nenhuma foto cadastrada para este teste.</p>';
     }
-    document.getElementById('fotosCalcadoEdicao').value = ''; // Limpa o seletor de arquivos
+    document.getElementById('fotosCalcadoEdicao').value = '';
 
     modal.style.display = 'block';
 }
@@ -220,7 +269,6 @@ async function salvarEdicaoTesteCp(event) {
         return;
     }
 
-    // --- LÓGICA DE UPLOAD DE NOVAS FOTOS ---
     const inputNovasFotos = document.getElementById('fotosCalcadoEdicao');
     const arquivos = inputNovasFotos.files;
     const novasUrlsFotos = [];
@@ -294,7 +342,6 @@ async function excluirTesteCp(id, urlsFotos) {
 }
 
 function fecharModalEdicaoTesteCp() { document.getElementById('modalEdicaoTesteCp').style.display = 'none'; }
-function fecharModalImagem() { document.getElementById('imageModal').style.display = 'none'; }
 function handleError(msg, err) { console.error(msg, err); showToast(msg, "error"); }
 function formatarTimestamp(ts) { if (!ts) return 'N/A'; const d = ts.toDate(); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
 function formatarParaInputDate(ts) { if (!ts) return ''; const d = ts.toDate(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }

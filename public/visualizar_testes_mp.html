@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizar Testes de Matéria-Prima - App Testes Ferracini</title>
+    <title>Testify-FS</title>
     <link rel="stylesheet" href="dashboard_style.css">
     <link rel="stylesheet" href="global_style.css">
     <style>
@@ -141,6 +141,37 @@
             background-color: #f1f1f1;
             border-radius: 4px;
         }
+
+        .modal-nav {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            width: auto;
+            padding: 16px;
+            margin-top: -50px;
+            color: white;
+            font-weight: bold;
+            font-size: 30px;
+            transition: 0.6s ease;
+            border-radius: 0 3px 3px 0;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: rgba(0,0,0,0.3);
+        }
+
+        .modal-nav:hover {
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        #modalPrevBtn {
+            left: 0;
+            border-radius: 3px 0 0 3px;
+        }
+
+        #modalNextBtn {
+            right: 0;
+            border-radius: 0 3px 3px 0;
+        }
     </style>
 </head>
 <body>
@@ -194,6 +225,8 @@
         <span class="close-modal-button" id="closeImageModalBtn">&times;</span>
         <img class="modal-content" id="modalImage" style="width: auto; max-width: 80%; max-height: 80vh;">
         <div id="caption"></div>
+        <a id="modalPrevBtn" class="modal-nav">&#10094;</a>
+        <a id="modalNextBtn" class="modal-nav">&#10095;</a>
     </div>
 
     <div id="modalEdicaoTesteMp" class="modal">

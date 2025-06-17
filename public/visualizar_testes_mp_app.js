@@ -14,6 +14,10 @@ let primeiroDocumentoDaPagina = null;
 let ultimoDocumentoDaPagina = null;
 let paginaAtual = 1;
 
+// --- VARIÁVEIS DE ESTADO PARA A GALERIA DE IMAGENS ---
+let galeriaImagensAtual = [];
+let indiceImagemAtual = 0;
+
 // --- PONTO DE ENTRADA PRINCIPAL E AUTORIZAÇÃO ---
 auth.onAuthStateChanged(user => {
     if (user) {
@@ -42,15 +46,80 @@ function configurarListenersDaPagina() {
     document.getElementById('modalEdicaoTesteMp').addEventListener('click', (e) => {
         if (e.target === document.getElementById('modalEdicaoTesteMp')) fecharModalEdicaoTesteMp();
     });
+
+    // Listeners do Modal de Imagem (com as setas)
     document.getElementById("closeImageModalBtn").addEventListener('click', fecharModalImagem);
-    document.getElementById("imageModal").addEventListener('click', (e) => {
-        if (e.target === document.getElementById("imageModal")) fecharModalImagem();
-    });
+    document.getElementById('modalNextBtn').addEventListener('click', mostrarProximaImagem);
+    document.getElementById('modalPrevBtn').addEventListener('click', mostrarImagemAnterior);
+
     document.getElementById('logoutButton').addEventListener('click', () => {
         auth.signOut().then(() => window.location.href = 'login.html');
     });
 }
 
+// --- NOVAS FUNÇÕES DA GALERIA ---
+function abrirModalImagem(urls, startIndex) {
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImage");
+    if (!modal || !modalImg) return;
+
+    galeriaImagensAtual = urls;
+    indiceImagemAtual = startIndex;
+    
+    modalImg.src = galeriaImagensAtual[indiceImagemAtual];
+    modal.style.display = "block";
+
+    document.addEventListener('keydown', navegarComTeclado);
+}
+
+function fecharModalImagem() {
+    const modal = document.getElementById('imageModal');
+    if (modal) modal.style.display = 'none';
+    document.removeEventListener('keydown', navegarComTeclado);
+}
+
+function mostrarProximaImagem() {
+    indiceImagemAtual = (indiceImagemAtual + 1) % galeriaImagensAtual.length;
+    document.getElementById('modalImage').src = galeriaImagensAtual[indiceImagemAtual];
+}
+
+function mostrarImagemAnterior() {
+    indiceImagemAtual = (indiceImagemAtual - 1 + galeriaImagensAtual.length) % galeriaImagensAtual.length;
+    document.getElementById('modalImage').src = galeriaImagensAtual[indiceImagemAtual];
+}
+
+function navegarComTeclado(e) {
+    if (e.key === "ArrowRight") {
+        mostrarProximaImagem();
+    } else if (e.key === "ArrowLeft") {
+        mostrarImagemAnterior();
+    } else if (e.key === "Escape") {
+        fecharModalImagem();
+    }
+}
+// --- FIM DAS FUNÇÕES DA GALERIA ---
+
+function conectarBotoesDaLista(docs) {
+    const itensDaLista = listaTestesMpDiv.querySelectorAll('.item-teste');
+    itensDaLista.forEach((item, index) => {
+        const doc = docs[index];
+        item.querySelector('.edit-test-btn').addEventListener('click', () => abrirModalEdicaoTesteMp(doc.id, doc.data()));
+        item.querySelector('.delete-test-btn').addEventListener('click', () => excluirTesteMp(doc.id, doc.data().fotos_material_urls));
+
+        // Lógica de clique nas miniaturas (corrigida e melhorada)
+        const thumbnails = item.querySelectorAll('.thumbnail-image');
+        const urlsDasImagensDoItem = Array.from(thumbnails).map(t => t.dataset.src);
+
+        thumbnails.forEach((img, idx) => {
+            img.addEventListener('click', function() {
+                abrirModalImagem(urlsDasImagensDoItem, idx);
+            });
+        });
+    });
+}
+
+
+// O restante do arquivo continua aqui (sem alterações)
 async function carregarEExibirTestes(direcao = 'primeira') {
     if (!listaTestesMpDiv) return;
     listaTestesMpDiv.innerHTML = '<p>A carregar testes...</p>';
@@ -176,25 +245,6 @@ function renderizarLista(docs, materiasPrimasMap, tiposTesteMap) {
     conectarBotoesDaLista(docsFiltrados);
 }
 
-function conectarBotoesDaLista(docs) {
-    const itensDaLista = listaTestesMpDiv.querySelectorAll('.item-teste');
-    itensDaLista.forEach((item, index) => {
-        const doc = docs[index];
-        item.querySelector('.edit-test-btn').addEventListener('click', () => abrirModalEdicaoTesteMp(doc.id, doc.data()));
-        item.querySelector('.delete-test-btn').addEventListener('click', () => excluirTesteMp(doc.id, doc.data().fotos_material_urls));
-    });
-    document.querySelectorAll('.thumbnail-image').forEach(img => {
-        img.addEventListener('click', function() {
-            const modal = document.getElementById("imageModal");
-            const modalImg = document.getElementById("modalImage");
-            if(modal && modalImg) {
-                modal.style.display = "block";
-                modalImg.src = this.dataset.src;
-            }
-        });
-    });
-}
-
 async function abrirModalEdicaoTesteMp(id, dados) {
     const modal = document.getElementById('modalEdicaoTesteMp');
     document.getElementById('hiddenTesteMpIdEdicao').value = id;
@@ -217,7 +267,6 @@ async function abrirModalEdicaoTesteMp(id, dados) {
     selectMateriaPrima.value = dados.id_materia_prima;
     selectTipoTeste.value = dados.id_tipo_teste;
 
-    // NOVO: Carrega as fotos existentes
     const fotosContainer = document.getElementById('fotosExistentesContainer');
     const urlsFotos = dados.fotos_material_urls || [];
     if (urlsFotos.length > 0) {
@@ -225,7 +274,7 @@ async function abrirModalEdicaoTesteMp(id, dados) {
     } else {
         fotosContainer.innerHTML = '<p>Nenhuma foto cadastrada para este teste.</p>';
     }
-    document.getElementById('fotosMaterialEdicao').value = ''; // Limpa o seletor de arquivos
+    document.getElementById('fotosMaterialEdicao').value = '';
 
     modal.style.display = 'block';
 }
@@ -243,7 +292,6 @@ async function salvarEdicaoTesteMp(event) {
         return;
     }
 
-    // --- LÓGICA DE UPLOAD DE NOVAS FOTOS ---
     const inputNovasFotos = document.getElementById('fotosMaterialEdicao');
     const arquivos = inputNovasFotos.files;
     const novasUrlsFotos = [];
@@ -314,7 +362,6 @@ async function excluirTesteMp(id, urlsFotos) {
 }
 
 function fecharModalEdicaoTesteMp() { document.getElementById('modalEdicaoTesteMp').style.display = 'none'; }
-function fecharModalImagem() { document.getElementById('imageModal').style.display = 'none'; }
 function handleError(mensagem, error) {
     console.error(mensagem, error);
     showToast(mensagem, "error");
