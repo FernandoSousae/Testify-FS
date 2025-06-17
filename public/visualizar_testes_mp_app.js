@@ -26,11 +26,7 @@ auth.onAuthStateChanged(user => {
     }
 });
 
-/**
- * Configura todos os 'ouvintes' de eventos para elementos estáticos da página.
- */
 function configurarListenersDaPagina() {
-    // Listeners dos Filtros
     document.getElementById('botaoFiltrar').addEventListener('click', () => carregarEExibirTestes('primeira'));
     document.getElementById('botaoLimparFiltros').addEventListener('click', () => {
         document.getElementById('buscaPorDescricao').value = '';
@@ -39,35 +35,22 @@ function configurarListenersDaPagina() {
         document.getElementById('filtroDataFim').value = '';
         carregarEExibirTestes('primeira');
     });
-
-    // Listeners dos botões de paginação
     document.getElementById('botaoProximo').addEventListener('click', () => carregarEExibirTestes('proximo'));
     document.getElementById('botaoAnterior').addEventListener('click', () => carregarEExibirTestes('anterior'));
-
-    // Listeners do Modal de Edição
     document.getElementById('formEdicaoTesteMp').addEventListener('submit', salvarEdicaoTesteMp);
     document.getElementById('botaoFecharModalEdicaoTesteMp').addEventListener('click', fecharModalEdicaoTesteMp);
     document.getElementById('modalEdicaoTesteMp').addEventListener('click', (e) => {
         if (e.target === document.getElementById('modalEdicaoTesteMp')) fecharModalEdicaoTesteMp();
     });
-
-    // **CORREÇÃO AQUI**: Garantindo que os listeners do modal de imagem sejam configurados
     document.getElementById("closeImageModalBtn").addEventListener('click', fecharModalImagem);
     document.getElementById("imageModal").addEventListener('click', (e) => {
-        if (e.target === document.getElementById("imageModal")) {
-            fecharModalImagem();
-        }
+        if (e.target === document.getElementById("imageModal")) fecharModalImagem();
     });
-
-    // Listener do Botão de Logout
     document.getElementById('logoutButton').addEventListener('click', () => {
         auth.signOut().then(() => window.location.href = 'login.html');
     });
 }
 
-/**
- * ATUALIZADO: Carrega e exibe a lista de testes, com lógica de paginação CORRIGIDA.
- */
 async function carregarEExibirTestes(direcao = 'primeira') {
     if (!listaTestesMpDiv) return;
     listaTestesMpDiv.innerHTML = '<p>A carregar testes...</p>';
@@ -83,7 +66,6 @@ async function carregarEExibirTestes(direcao = 'primeira') {
         } else if (direcao === 'proximo' && ultimoDocumentoDaPagina) {
             queryPaginada = query.orderBy("data_teste", "desc").startAfter(ultimoDocumentoDaPagina).limit(TAMANHO_PAGINA);
         } else if (direcao === 'anterior' && primeiroDocumentoDaPagina) {
-            // --- LÓGICA CORRIGIDA PARA "ANTERIOR" ---
             queryPaginada = query.orderBy("data_teste", "asc").startAfter(primeiroDocumentoDaPagina).limit(TAMANHO_PAGINA);
         } else {
             return; 
@@ -92,8 +74,6 @@ async function carregarEExibirTestes(direcao = 'primeira') {
         const querySnapshot = await queryPaginada.get();
         let docs = querySnapshot.docs;
         
-        // Se estávamos indo para trás, os resultados vieram na ordem inversa.
-        // Então, precisamos revertê-los no código antes de mostrar.
         if (direcao === 'anterior') {
             docs.reverse();
         }
@@ -116,9 +96,6 @@ async function carregarEExibirTestes(direcao = 'primeira') {
     }
 }
 
-/**
- * Habilita/desabilita os botões de paginação.
- */
 function atualizarEstadoBotoes(tamanhoResultado, direcao) {
     const botaoAnterior = document.getElementById('botaoAnterior');
     const botaoProximo = document.getElementById('botaoProximo');
@@ -135,12 +112,6 @@ function atualizarEstadoBotoes(tamanhoResultado, direcao) {
     botaoProximo.style.opacity = botaoProximo.disabled ? '0.6' : '1';
     botaoProximo.style.cursor = botaoProximo.disabled ? 'not-allowed' : 'pointer';
 }
-
-// --- SUAS OUTRAS FUNÇÕES ---
-// O restante do seu código (construirQueryComFiltros, renderizarLista, conectarBotoesDaLista, 
-// abrirModalEdicao, salvar, excluir, helpers, etc.) permanece o mesmo.
-// Apenas garanta que ele exista no arquivo.
-// Para garantir, estou incluindo todas elas abaixo.
 
 function construirQueryComFiltros() {
     const resultadoFiltro = document.getElementById('filtroResultado').value;
@@ -205,9 +176,6 @@ function renderizarLista(docs, materiasPrimasMap, tiposTesteMap) {
     conectarBotoesDaLista(docsFiltrados);
 }
 
-/**
- * Conecta os 'ouvintes' de eventos para elementos dinâmicos da lista.
- */
 function conectarBotoesDaLista(docs) {
     const itensDaLista = listaTestesMpDiv.querySelectorAll('.item-teste');
     itensDaLista.forEach((item, index) => {
@@ -215,8 +183,6 @@ function conectarBotoesDaLista(docs) {
         item.querySelector('.edit-test-btn').addEventListener('click', () => abrirModalEdicaoTesteMp(doc.id, doc.data()));
         item.querySelector('.delete-test-btn').addEventListener('click', () => excluirTesteMp(doc.id, doc.data().fotos_material_urls));
     });
-    // **CORREÇÃO AQUI**: O listener para abrir o modal de imagem deve estar aqui,
-    // pois os elementos .thumbnail-image são criados dinamicamente.
     document.querySelectorAll('.thumbnail-image').forEach(img => {
         img.addEventListener('click', function() {
             const modal = document.getElementById("imageModal");
@@ -229,25 +195,38 @@ function conectarBotoesDaLista(docs) {
     });
 }
 
-// --- FUNÇÕES CRUD E MODAL (Sem alterações, apenas mantidas) ---
 async function abrirModalEdicaoTesteMp(id, dados) {
     const modal = document.getElementById('modalEdicaoTesteMp');
     document.getElementById('hiddenTesteMpIdEdicao').value = id;
     document.getElementById('dataTesteEdicao').value = formatarParaInputDate(dados.data_teste);
     document.getElementById('resultadoTesteEdicao').value = dados.resultado;
     document.getElementById('observacoesTesteEdicao').value = dados.observacoes || '';
+    
     const selectMateriaPrima = document.getElementById('materiaPrimaEdicao');
     const selectTipoTeste = document.getElementById('tipoTesteEdicao');
     selectMateriaPrima.innerHTML = '<option value="">A carregar...</option>';
     selectTipoTeste.innerHTML = '<option value="">A carregar...</option>';
+
     const [materiasPrimasSnapshot, tiposTesteSnapshot] = await Promise.all([
         db.collection("MateriasPrimas").orderBy("descricao_mp").get(),
         db.collection("TiposTeste").where("categoria_aplicavel", "in", ["Matéria-Prima", "Ambos"]).orderBy("nome_tipo_teste").get()
     ]);
     selectMateriaPrima.innerHTML = materiasPrimasSnapshot.docs.map(doc => `<option value="${doc.id}">${doc.data().descricao_mp}</option>`).join('');
     selectTipoTeste.innerHTML = tiposTesteSnapshot.docs.map(doc => `<option value="${doc.id}">${doc.data().nome_tipo_teste}</option>`).join('');
+    
     selectMateriaPrima.value = dados.id_materia_prima;
     selectTipoTeste.value = dados.id_tipo_teste;
+
+    // NOVO: Carrega as fotos existentes
+    const fotosContainer = document.getElementById('fotosExistentesContainer');
+    const urlsFotos = dados.fotos_material_urls || [];
+    if (urlsFotos.length > 0) {
+        fotosContainer.innerHTML = urlsFotos.map(url => `<img src="${url}" alt="Foto existente">`).join('');
+    } else {
+        fotosContainer.innerHTML = '<p>Nenhuma foto cadastrada para este teste.</p>';
+    }
+    document.getElementById('fotosMaterialEdicao').value = ''; // Limpa o seletor de arquivos
+
     modal.style.display = 'block';
 }
 
@@ -256,20 +235,62 @@ async function salvarEdicaoTesteMp(event) {
     const submitButton = event.target.querySelector('button[type="submit"]');
     submitButton.disabled = true;
     submitButton.textContent = 'A salvar...';
+
     const id = document.getElementById('hiddenTesteMpIdEdicao').value;
-    const dadosAtualizados = {
-        id_materia_prima: document.getElementById('materiaPrimaEdicao').value,
-        id_tipo_teste: document.getElementById('tipoTesteEdicao').value,
-        data_teste: firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('dataTesteEdicao').value + 'T00:00:00')),
-        resultado: document.getElementById('resultadoTesteEdicao').value,
-        observacoes: document.getElementById('observacoesTesteEdicao').value,
-        data_ultima_modificacao: firebase.firestore.FieldValue.serverTimestamp()
-    };
+    const user = auth.currentUser;
+    if (!user) {
+        showToast("Usuário não autenticado. Faça login novamente.", "error");
+        return;
+    }
+
+    // --- LÓGICA DE UPLOAD DE NOVAS FOTOS ---
+    const inputNovasFotos = document.getElementById('fotosMaterialEdicao');
+    const arquivos = inputNovasFotos.files;
+    const novasUrlsFotos = [];
+
+    if (arquivos.length > 0) {
+        submitButton.textContent = 'Enviando fotos...';
+        const uploadPromises = [];
+        for (let i = 0; i < arquivos.length; i++) {
+            const arquivo = arquivos[i];
+            const nomeArquivo = `testes_materia_prima_fotos/${user.uid}_${Date.now()}_${arquivo.name}`;
+            const arquivoRef = storage.ref(nomeArquivo);
+            uploadPromises.push(arquivoRef.put(arquivo).then(snapshot => snapshot.ref.getDownloadURL()));
+        }
+        try {
+            const urlsResolvidas = await Promise.all(uploadPromises);
+            novasUrlsFotos.push(...urlsResolvidas);
+        } catch (error) {
+            handleError("Erro no upload das novas fotos. As alterações não foram salvas.", error);
+            submitButton.disabled = false;
+            submitButton.textContent = 'Salvar Alterações';
+            return;
+        }
+    }
+    
+    submitButton.textContent = 'A salvar dados...';
     try {
-        await db.collection("TestesMateriaPrima").doc(id).update(dadosAtualizados);
+        const testeDocRef = db.collection("TestesMateriaPrima").doc(id);
+        const testeDoc = await testeDocRef.get();
+        const dadosAtuais = testeDoc.data();
+        
+        const urlsFotosExistentes = dadosAtuais.fotos_material_urls || [];
+        const urlsCombinadas = [...urlsFotosExistentes, ...novasUrlsFotos];
+
+        const dadosAtualizados = {
+            id_materia_prima: document.getElementById('materiaPrimaEdicao').value,
+            id_tipo_teste: document.getElementById('tipoTesteEdicao').value,
+            data_teste: firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('dataTesteEdicao').value + 'T00:00:00')),
+            resultado: document.getElementById('resultadoTesteEdicao').value,
+            observacoes: document.getElementById('observacoesTesteEdicao').value,
+            fotos_material_urls: urlsCombinadas,
+            data_ultima_modificacao: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        await testeDocRef.update(dadosAtualizados);
         showToast("Teste atualizado com sucesso!", "success");
         fecharModalEdicaoTesteMp();
-        carregarEExibirTestes('primeira'); // Recarrega para a primeira página após editar
+        carregarEExibirTestes('primeira');
     } catch (error) {
         handleError("Erro ao atualizar o teste:", error);
     } finally {
@@ -286,13 +307,12 @@ async function excluirTesteMp(id, urlsFotos) {
         }
         await db.collection("TestesMateriaPrima").doc(id).delete();
         showToast("Teste excluído com sucesso!", "success");
-        carregarEExibirTestes('primeira'); // Recarrega para a primeira página após excluir
+        carregarEExibirTestes('primeira');
     } catch (error) {
         handleError("Erro ao excluir o teste:", error);
     }
 }
 
-// --- FUNÇÕES AUXILIARES (Sem alterações, apenas mantidas) ---
 function fecharModalEdicaoTesteMp() { document.getElementById('modalEdicaoTesteMp').style.display = 'none'; }
 function fecharModalImagem() { document.getElementById('imageModal').style.display = 'none'; }
 function handleError(mensagem, error) {
@@ -302,15 +322,10 @@ function handleError(mensagem, error) {
 function formatarTimestamp(timestamp) {
     if (!timestamp) return 'N/A';
     const data = timestamp.toDate();
-    const dia = String(data.getDate()).padStart(2, '0');
-    const mes = String(data.getMonth() + 1).padStart(2, '0');
-    return `${dia}/${mes}/${data.getFullYear()}`;
+    return `${String(data.getDate()).padStart(2, '0')}/${String(data.getMonth() + 1).padStart(2, '0')}/${data.getFullYear()}`;
 }
 function formatarParaInputDate(timestamp) {
     if (!timestamp) return '';
     const data = timestamp.toDate();
-    const ano = data.getFullYear();
-    const mes = String(data.getMonth() + 1).padStart(2, '0');
-    const dia = String(data.getDate()).padStart(2, '0');
-    return `${ano}-${mes}-${dia}`;
+    return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
 }

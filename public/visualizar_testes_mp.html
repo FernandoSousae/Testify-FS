@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizar Testes de Matéria-Prima - App Testes Ferracini</title>
-    <link rel="stylesheet" href="dashboard_style.css"> <!-- Assumindo que este arquivo existe e está correto -->
-    <link rel="stylesheet" href="global_style.css"> <!-- Para toasts -->
+    <link rel="stylesheet" href="dashboard_style.css">
+    <link rel="stylesheet" href="global_style.css">
     <style>
         .test-list-container {
             max-width: 900px;
@@ -42,7 +42,7 @@
         .item-teste strong {
             color: #555;
         }
-        .fotos-container img {
+        .fotos-container img, .fotos-existentes-container img {
             max-width: 100px;
             max-height: 100px;
             margin: 5px;
@@ -70,16 +70,14 @@
             border: none;
             font-size: 0.9em;
         }
-        .edit-test-btn { /* Botão Editar Teste */
+        .edit-test-btn {
             background-color: #ffc107; 
             color: #212529;
         }
-        .delete-test-btn { /* Botão Excluir Teste */
+        .delete-test-btn {
             background-color: #dc3545; 
             color: white;
         }
-
-        /* Estilos para o Modal (genérico, usado por ambos os modais) */
         .modal {
             display: none; 
             position: fixed; 
@@ -98,7 +96,7 @@
             padding: 20px;
             border: 1px solid #888;
             width: 80%;
-            max-width: 600px; /* Pode ser ajustado por modal específico se necessário */
+            max-width: 600px;
             border-radius: 8px;
             position: relative;
         }
@@ -116,7 +114,6 @@
             color: black;
             text-decoration: none;
         }
-        /* Estilos específicos para o formulário DENTRO do modal de edição */
         #formEdicaoTesteMp div { 
             margin-bottom: 15px;
         }
@@ -126,6 +123,7 @@
             font-weight: bold;
         }
         #formEdicaoTesteMp input[type="date"],
+        #formEdicaoTesteMp input[type="file"],
         #formEdicaoTesteMp select,
         #formEdicaoTesteMp textarea {
             width: 100%;
@@ -136,6 +134,12 @@
         }
         #formEdicaoTesteMp textarea {
             resize: vertical;
+        }
+        .fotos-existentes-container {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -174,7 +178,6 @@
 
             <div id="listaTestesMp">
                 <p>A carregar testes...</p>
-                <!-- Os testes serão listados aqui pelo JavaScript, incluindo botões de Editar e Excluir -->
             </div>
             <div id="paginacao-container" style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
                 <button id="botaoAnterior" class="submit-button" style="background-color: #6c757d; opacity: 0.6; cursor: not-allowed;">&laquo; Anterior</button>
@@ -187,14 +190,12 @@
         <p>&copy; Criado por Fernando Sousa - 2025</p>
     </footer>
 
-    <!-- Modal para Imagem Ampliada -->
     <div id="imageModal" class="modal">
         <span class="close-modal-button" id="closeImageModalBtn">&times;</span>
-        <img class="modal-content" id="modalImage" style="width: auto; max-width: 80%; max-height: 80vh;"> <!-- Estilo inline para imagem do modal -->
+        <img class="modal-content" id="modalImage" style="width: auto; max-width: 80%; max-height: 80vh;">
         <div id="caption"></div>
     </div>
 
-    <!-- Modal de Edição de Teste de Matéria-Prima -->
     <div id="modalEdicaoTesteMp" class="modal">
         <div class="modal-content">
             <span class="close-modal-button" id="botaoFecharModalEdicaoTesteMp">&times;</span>
@@ -203,17 +204,12 @@
                 <input type="hidden" id="hiddenTesteMpIdEdicao">
                 <div>
                     <label for="materiaPrimaEdicao">Matéria-Prima:</label>
-                    <select id="materiaPrimaEdicao" required>
-                    <option value="">A carregar...</option>
-                    </select>
+                    <select id="materiaPrimaEdicao" required></select>
                 </div>
                 <div>
                     <label for="tipoTesteEdicao">Tipo de Teste:</label>
-                    <select id="tipoTesteEdicao" required>
-                    <option value="">A carregar...</option>
-                    </select>
+                    <select id="tipoTesteEdicao" required></select>
                 </div>
-
                 <div>
                     <label for="dataTesteEdicao">Data do Teste:</label>
                     <input type="date" id="dataTesteEdicao" required>
@@ -221,7 +217,6 @@
                 <div>
                     <label for="resultadoTesteEdicao">Resultado:</label>
                     <select id="resultadoTesteEdicao" required>
-                        <option value="">Selecione o Resultado...</option>
                         <option value="Aprovado">Aprovado</option>
                         <option value="Reprovado">Reprovado</option>
                         <option value="Em Análise">Em Análise</option>
@@ -231,42 +226,39 @@
                     <label for="observacoesTesteEdicao">Observações:</label>
                     <textarea id="observacoesTesteEdicao" rows="4"></textarea>
                 </div>
+                <hr>
+                <div>
+                    <label>Fotos Existentes:</label>
+                    <div id="fotosExistentesContainer" class="fotos-existentes-container">
+                        </div>
+                </div>
+                <div>
+                    <label for="fotosMaterialEdicao">Adicionar Novas Fotos:</label>
+                    <input type="file" id="fotosMaterialEdicao" multiple accept="image/*">
+                </div>
                 <button type="submit" class="submit-button" style="background-color: #28a745;">Salvar Alterações</button>
             </form>
         </div>
     </div>
 
-    <!-- HTML do Toast Notification -->
     <div id="toastNotification" class="toast">
         <span id="toastMessage"></span>
     </div>
 
-    <!-- Scripts -->
     <script src="firebase-config.js"></script>
     <script src="utils.js"></script> 
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js"></script> <!-- SDK do Storage é importante para excluir fotos -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js"></script>
     
     <script>
-        // Lógica de carregamento SIMPLIFICADA para depuração
-
-        // 1. Inicializa o Firebase
-        console.log("DEPURAÇÃO: Script simplificado INICIADO.");
         if (typeof firebaseConfig !== 'undefined' && firebase.apps.length === 0) {
             firebase.initializeApp(firebaseConfig);
-            console.log("DEPURAÇÃO: Firebase inicializado pelo script SIMPLIFICADO.");
-        } else {
-            console.log("DEPURAÇÃO: Firebase JÁ estava inicializado ou config não foi encontrada.");
         }
-
-        // 2. Tenta carregar o script da página DIRETAMENTE
-        console.log("DEPURAÇÃO: Tentando carregar 'visualizar_testes_mp_app.js'...");
         var scriptPagina = document.createElement('script');
         scriptPagina.src = 'visualizar_testes_mp_app.js';
         document.body.appendChild(scriptPagina);    
-        console.log("DEPURAÇÃO: Tag de script para 'visualizar_testes_mp_app.js' foi adicionada ao body.");
     </script>
 </body>
 </html>

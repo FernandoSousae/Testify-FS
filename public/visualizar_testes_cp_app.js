@@ -1,6 +1,5 @@
 console.log("visualizar_testes_cp_app.js INICIADO.");
 
-// --- INICIALIZAÇÃO E VARIÁVEIS GLOBAIS ---
 const db = firebase.firestore();
 const storage = firebase.storage();
 const auth = firebase.auth();
@@ -8,13 +7,11 @@ const auth = firebase.auth();
 const mainContent = document.querySelector('main');
 const listaTestesCpDiv = document.getElementById('listaTestesCp');
 
-// --- VARIÁVEIS DE ESTADO PARA PAGINAÇÃO ---
 const TAMANHO_PAGINA_CP = 5;
 let primeiroDocumentoDaPaginaCp = null;
 let ultimoDocumentoDaPaginaCp = null;
 let paginaAtualCp = 1;
 
-// --- PONTO DE ENTRADA PRINCIPAL E AUTORIZAÇÃO ---
 auth.onAuthStateChanged(user => {
     if (user) {
         mainContent.style.display = 'block';
@@ -26,9 +23,6 @@ auth.onAuthStateChanged(user => {
     }
 });
 
-/**
- * Configura todos os 'ouvintes' de eventos para elementos estáticos da página.
- */
 function configurarListenersDaPaginaCp() {
     popularFiltroTipoTeste();
     document.getElementById('botaoFiltrarCp').addEventListener('click', () => carregarEExibirTestesCp('primeira'));
@@ -41,10 +35,8 @@ function configurarListenersDaPaginaCp() {
         document.getElementById('filtroDataFimCp').value = '';
         carregarEExibirTestesCp('primeira');
     });
-
     document.getElementById('botaoProximo').addEventListener('click', () => carregarEExibirTestesCp('proximo'));
     document.getElementById('botaoAnterior').addEventListener('click', () => carregarEExibirTestesCp('anterior'));
-
     document.getElementById('formEdicaoTesteCp').addEventListener('submit', salvarEdicaoTesteCp);
     document.getElementById('botaoFecharModalEdicaoTesteCp').addEventListener('click', fecharModalEdicaoTesteCp);
     document.getElementById('modalEdicaoTesteCp').addEventListener('click', (e) => {
@@ -58,9 +50,6 @@ function configurarListenersDaPaginaCp() {
     });
 }
 
-/**
- * Popula o dropdown de filtro de tipo de teste.
- */
 async function popularFiltroTipoTeste() {
     const selectFiltro = document.getElementById('filtroTipoTesteCp');
     try {
@@ -72,9 +61,6 @@ async function popularFiltroTipoTeste() {
     }
 }
 
-/**
- * FUNÇÃO PRINCIPAL: Carrega e exibe a lista de testes, com paginação e filtros CORRIGIDOS.
- */
 async function carregarEExibirTestesCp(direcao = 'primeira') {
     if (!listaTestesCpDiv) return;
     listaTestesCpDiv.innerHTML = '<p>A carregar testes...</p>';
@@ -88,7 +74,6 @@ async function carregarEExibirTestesCp(direcao = 'primeira') {
         } else if (direcao === 'proximo' && ultimoDocumentoDaPaginaCp) {
             queryPaginada = query.orderBy("data_inicio_teste", "desc").startAfter(ultimoDocumentoDaPaginaCp).limit(TAMANHO_PAGINA_CP);
         } else if (direcao === 'anterior' && primeiroDocumentoDaPaginaCp) {
-            // --- LÓGICA CORRIGIDA PARA "ANTERIOR" ---
             queryPaginada = query.orderBy("data_inicio_teste", "asc").startAfter(primeiroDocumentoDaPaginaCp).limit(TAMANHO_PAGINA_CP);
         } else {
             return; 
@@ -97,8 +82,6 @@ async function carregarEExibirTestesCp(direcao = 'primeira') {
         const querySnapshot = await queryPaginada.get();
         let docs = querySnapshot.docs;
 
-        // Se estivermos paginando para trás, os resultados vêm na ordem errada.
-        // Precisamos revertê-los aqui para mostrar na ordem correta (mais recente primeiro).
         if (direcao === 'anterior') {
             docs.reverse();
         }
@@ -120,9 +103,6 @@ async function carregarEExibirTestesCp(direcao = 'primeira') {
     }
 }
 
-/**
- * Constrói a query base com os filtros aplicados.
- */
 function construirQueryComFiltrosCp() {
     const subCategoriaFiltro = document.getElementById('filtroSubCategoriaCp').value;
     const tipoTesteFiltro = document.getElementById('filtroTipoTesteCp').value;
@@ -138,9 +118,6 @@ function construirQueryComFiltrosCp() {
     return query;
 }
 
-/**
- * Renderiza o HTML da lista na tela.
- */
 function renderizarListaCp(docs, tiposTesteMap) {
     const termoBusca = document.getElementById('buscaCp').value.toLowerCase();
     const docsFiltrados = docs.filter(doc => {
@@ -165,38 +142,28 @@ function renderizarListaCp(docs, tiposTesteMap) {
     conectarBotoesDaListaCp(docsFiltrados);
 }
 
-/**
- * Habilita/desabilita os botões de paginação.
- */
 function atualizarEstadoBotoesCp(tamanhoResultado, direcao) {
     const botaoAnterior = document.getElementById('botaoAnterior');
     const botaoProximo = document.getElementById('botaoProximo');
     
-    if (direcao === 'proximo' && tamanhoResultado > 0) {
-        paginaAtualCp++;
-    } else if (direcao === 'anterior' && tamanhoResultado > 0) {
-        paginaAtualCp--;
-    } else if (direcao === 'primeira') {
-        paginaAtualCp = 1;
-    }
+    if (direcao === 'proximo' && tamanhoResultado > 0) paginaAtualCp++;
+    if (direcao === 'anterior' && tamanhoResultado > 0) paginaAtualCp--;
+    if (direcao === 'primeira') paginaAtualCp = 1;
 
-    botaoAnterior.disabled = (paginaAtualCp <= 1);
+    botaoAnterior.disabled = paginaAtualCp <= 1;
     botaoAnterior.style.opacity = botaoAnterior.disabled ? '0.6' : '1';
     botaoAnterior.style.cursor = botaoAnterior.disabled ? 'not-allowed' : 'pointer';
 
-    botaoProximo.disabled = (tamanhoResultado < TAMANHO_PAGINA_CP);
+    botaoProximo.disabled = tamanhoResultado < TAMANHO_PAGINA_CP;
     botaoProximo.style.opacity = botaoProximo.disabled ? '0.6' : '1';
     botaoProximo.style.cursor = botaoProximo.disabled ? 'not-allowed' : 'pointer';
 }
 
-/**
- * Conecta os 'ouvintes' de eventos para elementos dinâmicos da lista.
- */
 function conectarBotoesDaListaCp(docs) {
     const itens = listaTestesCpDiv.querySelectorAll('.item-teste');
     itens.forEach((item, i) => {
         item.querySelector('.edit-test-cp-btn').addEventListener('click', () => abrirModalEdicaoTesteCp(docs[i].id, docs[i].data()));
-        item.querySelector('.delete-test-cp-btn').addEventListener('click', () => excluirTesteCp(docs[i].id));
+        item.querySelector('.delete-test-cp-btn').addEventListener('click', () => excluirTesteCp(docs[i].id, docs[i].data().fotos_calcado_urls));
     });
     document.querySelectorAll('.thumbnail-image').forEach(img => {
         img.addEventListener('click', function() {
@@ -210,9 +177,6 @@ function conectarBotoesDaListaCp(docs) {
     });
 }
 
-/**
- * Abre o modal de edição e popula com os dados do teste.
- */
 async function abrirModalEdicaoTesteCp(id, dados) {
     const modal = document.getElementById('modalEdicaoTesteCp');
     document.getElementById('hiddenTesteCpIdEdicao').value = id;
@@ -223,36 +187,87 @@ async function abrirModalEdicaoTesteCp(id, dados) {
     document.getElementById('dataFimTesteCpEdicao').value = formatarParaInputDate(dados.data_fim_teste);
     document.getElementById('resultadoTesteCpEdicao').value = dados.resultado;
     document.getElementById('observacoesTesteCpEdicao').value = dados.observacoes_gerais || '';
+    
     const selectTipoTeste = document.getElementById('tipoTesteCpEdicao');
     selectTipoTeste.innerHTML = '<option value="">A carregar...</option>';
     const snapshot = await db.collection("TiposTeste").where("categoria_aplicavel", "in", ["Calçado Pronto", "Ambos"]).get();
     selectTipoTeste.innerHTML = snapshot.docs.map(doc => `<option value="${doc.id}">${doc.data().nome_tipo_teste}</option>`).join('');
     selectTipoTeste.value = dados.id_tipo_teste;
+
+    // NOVO: Carrega as fotos existentes
+    const fotosContainer = document.getElementById('fotosExistentesCpContainer');
+    const urlsFotos = dados.fotos_calcado_urls || [];
+    if (urlsFotos.length > 0) {
+        fotosContainer.innerHTML = urlsFotos.map(url => `<img src="${url}" alt="Foto existente">`).join('');
+    } else {
+        fotosContainer.innerHTML = '<p>Nenhuma foto cadastrada para este teste.</p>';
+    }
+    document.getElementById('fotosCalcadoEdicao').value = ''; // Limpa o seletor de arquivos
+
     modal.style.display = 'block';
 }
 
-/**
- * Salva as alterações feitas no modal de edição.
- */
 async function salvarEdicaoTesteCp(event) {
     event.preventDefault();
     const btn = event.target.querySelector('button[type="submit"]');
     btn.disabled = true;
     btn.textContent = 'A salvar...';
+
     const id = document.getElementById('hiddenTesteCpIdEdicao').value;
-    const dados = {
-        sub_categoria: document.getElementById('subCategoriaCpEdicao').value,
-        linha_calcado: document.getElementById('linhaCalcadoEdicao').value,
-        referencia_calcado: document.getElementById('referenciaCalcadoEdicao').value,
-        data_inicio_teste: firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('dataInicioTesteCpEdicao').value + 'T00:00:00')),
-        data_fim_teste: document.getElementById('dataFimTesteCpEdicao').value ? firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('dataFimTesteCpEdicao').value + 'T00:00:00')) : null,
-        id_tipo_teste: document.getElementById('tipoTesteCpEdicao').value,
-        resultado: document.getElementById('resultadoTesteCpEdicao').value,
-        observacoes_gerais: document.getElementById('observacoesTesteCpEdicao').value,
-        data_ultima_modificacao: firebase.firestore.FieldValue.serverTimestamp()
-    };
+    const user = auth.currentUser;
+    if (!user) {
+        showToast("Usuário não autenticado. Faça login novamente.", "error");
+        return;
+    }
+
+    // --- LÓGICA DE UPLOAD DE NOVAS FOTOS ---
+    const inputNovasFotos = document.getElementById('fotosCalcadoEdicao');
+    const arquivos = inputNovasFotos.files;
+    const novasUrlsFotos = [];
+
+    if (arquivos.length > 0) {
+        btn.textContent = 'Enviando fotos...';
+        const uploadPromises = [];
+        for (let i = 0; i < arquivos.length; i++) {
+            const arquivo = arquivos[i];
+            const nomeArquivo = `testes_calcado_pronto_fotos/${user.uid}_${Date.now()}_${arquivo.name}`;
+            const arquivoRef = storage.ref(nomeArquivo);
+            uploadPromises.push(arquivoRef.put(arquivo).then(snapshot => snapshot.ref.getDownloadURL()));
+        }
+        try {
+            const urlsResolvidas = await Promise.all(uploadPromises);
+            novasUrlsFotos.push(...urlsResolvidas);
+        } catch (error) {
+            handleError("Erro no upload das novas fotos. As alterações não foram salvas.", error);
+            btn.disabled = false;
+            btn.textContent = 'Salvar Alterações';
+            return;
+        }
+    }
+
+    btn.textContent = 'A salvar dados...';
     try {
-        await db.collection("TestesCalcadoPronto").doc(id).update(dados);
+        const testeDocRef = db.collection("TestesCalcadoPronto").doc(id);
+        const testeDoc = await testeDocRef.get();
+        const dadosAtuais = testeDoc.data();
+        
+        const urlsFotosExistentes = dadosAtuais.fotos_calcado_urls || [];
+        const urlsCombinadas = [...urlsFotosExistentes, ...novasUrlsFotos];
+        
+        const dados = {
+            sub_categoria: document.getElementById('subCategoriaCpEdicao').value,
+            linha_calcado: document.getElementById('linhaCalcadoEdicao').value,
+            referencia_calcado: document.getElementById('referenciaCalcadoEdicao').value,
+            data_inicio_teste: firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('dataInicioTesteCpEdicao').value + 'T00:00:00')),
+            data_fim_teste: document.getElementById('dataFimTesteCpEdicao').value ? firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('dataFimTesteCpEdicao').value + 'T00:00:00')) : null,
+            id_tipo_teste: document.getElementById('tipoTesteCpEdicao').value,
+            resultado: document.getElementById('resultadoTesteCpEdicao').value,
+            observacoes_gerais: document.getElementById('observacoesTesteCpEdicao').value,
+            fotos_calcado_urls: urlsCombinadas,
+            data_ultima_modificacao: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        await testeDocRef.update(dados);
         showToast("Teste atualizado com sucesso!", "success");
         fecharModalEdicaoTesteCp();
         carregarEExibirTestesCp('primeira');
@@ -264,16 +279,12 @@ async function salvarEdicaoTesteCp(event) {
     }
 }
 
-/**
- * Exclui um teste do Firestore e suas fotos do Storage.
- */
-async function excluirTesteCp(id) {
+async function excluirTesteCp(id, urlsFotos) {
     if (!confirm("Tem certeza que deseja excluir este teste?")) return;
     try {
-        const doc = await db.collection("TestesCalcadoPronto").doc(id).get();
-        if (!doc.exists) throw new Error("Documento não encontrado.");
-        const urls = doc.data().fotos_calcado_urls || [];
-        if (urls.length > 0) await Promise.all(urls.map(url => storage.refFromURL(url).delete()));
+        if (urlsFotos && urlsFotos.length > 0) {
+            await Promise.all(urlsFotos.map(url => storage.refFromURL(url).delete()));
+        }
         await db.collection("TestesCalcadoPronto").doc(id).delete();
         showToast("Teste excluído com sucesso!", "success");
         carregarEExibirTestesCp('primeira');
@@ -282,7 +293,6 @@ async function excluirTesteCp(id) {
     }
 }
 
-// --- FUNÇÕES AUXILIARES ---
 function fecharModalEdicaoTesteCp() { document.getElementById('modalEdicaoTesteCp').style.display = 'none'; }
 function fecharModalImagem() { document.getElementById('imageModal').style.display = 'none'; }
 function handleError(msg, err) { console.error(msg, err); showToast(msg, "error"); }

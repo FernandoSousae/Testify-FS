@@ -7,6 +7,23 @@
     <link rel="stylesheet" href="dashboard_style.css">
     <link rel="stylesheet" href="global_style.css">
     <link rel="stylesheet" href="visualizar_testes_style.css"> 
+    <style>
+        .fotos-existentes-container {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+        }
+        .fotos-existentes-container img {
+            max-width: 100px;
+            max-height: 100px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 3px;
+            background-color: white;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -22,33 +39,25 @@
             <h2>Testes de Calçado Pronto Registrados</h2>
 
             <div class="filtros-container" style="padding: 15px; background-color: #f8f9fa; border-radius: 5px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-    
                 <input type="search" id="buscaCp" placeholder="Buscar por linha ou referência..." style="padding: 8px; flex-grow: 1; border: 1px solid #ccc; border-radius: 4px;">
-
                 <select id="filtroSubCategoriaCp" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                     <option value="">Todas as Sub-categorias</option>
                     <option value="Modelo Novo">Modelo Novo</option>
                     <option value="Teste de Produção">Teste de Produção</option>
                 </select>
-
                 <select id="filtroTipoTesteCp" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                     <option value="">Todos os Tipos de Teste</option>
                 </select>
-
                 <select id="filtroResultadoCp" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                     <option value="">Todos os Resultados</option>
                     <option value="Aprovado">Aprovado</option>
                     <option value="Reprovado">Reprovado</option>
                     <option value="Em Análise">Em Análise</option>
                 </select>
-
                 <input type="date" id="filtroDataInicioCp" title="Data de Início do Período" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                
                 <input type="date" id="filtroDataFimCp" title="Data de Fim do Período" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-
                 <button id="botaoFiltrarCp" class="submit-button" style="background-color: #007bff; padding: 8px 12px; font-size: 0.9em;">Filtrar</button>
                 <button id="botaoLimparFiltrosCp" class="delete-btn" style="background-color: #6c757d; padding: 8px 12px; font-size: 0.9em;">Limpar</button>
-
             </div>
 
             <div id="listaTestesCp">
@@ -76,49 +85,23 @@
             <h3>Editar Teste de Calçado Pronto</h3>
             <form id="formEdicaoTesteCp">
                 <input type="hidden" id="hiddenTesteCpIdEdicao">
-                
+                <div><label for="subCategoriaCpEdicao">Sub-categoria:</label><select id="subCategoriaCpEdicao" required><option value="Modelo Novo">Modelo Novo</option><option value="Teste de Produção">Teste de Produção</option></select></div>
+                <div><label for="linhaCalcadoEdicao">Linha do Calçado:</label><input type="text" id="linhaCalcadoEdicao" required></div>
+                <div><label for="referenciaCalcadoEdicao">Referência do Calçado:</label><input type="text" id="referenciaCalcadoEdicao" required></div>
+                <div><label for="dataInicioTesteCpEdicao">Data de Início:</label><input type="date" id="dataInicioTesteCpEdicao" required></div>
+                <div><label for="dataFimTesteCpEdicao">Data de Fim:</label><input type="date" id="dataFimTesteCpEdicao"></div>
+                <div><label for="tipoTesteCpEdicao">Tipo de Teste:</label><select id="tipoTesteCpEdicao" required></select></div>
+                <div><label for="resultadoTesteCpEdicao">Resultado:</label><select id="resultadoTesteCpEdicao" required><option value="Aprovado">Aprovado</option><option value="Reprovado">Reprovado</option><option value="Em Análise">Em Análise</option></select></div>
+                <div><label for="observacoesTesteCpEdicao">Observações Gerais:</label><textarea id="observacoesTesteCpEdicao" rows="4"></textarea></div>
+                <hr>
                 <div>
-                    <label for="subCategoriaCpEdicao">Sub-categoria:</label>
-                    <select id="subCategoriaCpEdicao" required>
-                        <option value="Modelo Novo">Modelo Novo</option>
-                        <option value="Teste de Produção">Teste de Produção</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="linhaCalcadoEdicao">Linha do Calçado:</label>
-                    <input type="text" id="linhaCalcadoEdicao" required>
-                </div>
-                <div>
-                    <label for="referenciaCalcadoEdicao">Referência do Calçado:</label>
-                    <input type="text" id="referenciaCalcadoEdicao" required>
+                    <label>Fotos Existentes:</label>
+                    <div id="fotosExistentesCpContainer" class="fotos-existentes-container"></div>
                 </div>
                 <div>
-                    <label for="dataInicioTesteCpEdicao">Data de Início:</label>
-                    <input type="date" id="dataInicioTesteCpEdicao" required>
+                    <label for="fotosCalcadoEdicao">Adicionar Novas Fotos:</label>
+                    <input type="file" id="fotosCalcadoEdicao" multiple accept="image/*">
                 </div>
-                 <div>
-                    <label for="dataFimTesteCpEdicao">Data de Fim:</label>
-                    <input type="date" id="dataFimTesteCpEdicao">
-                </div>
-                <div>
-                    <label for="tipoTesteCpEdicao">Tipo de Teste:</label>
-                    <select id="tipoTesteCpEdicao" required>
-                        <option value="">A carregar...</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="resultadoTesteCpEdicao">Resultado:</label>
-                    <select id="resultadoTesteCpEdicao" required>
-                        <option value="Aprovado">Aprovado</option>
-                        <option value="Reprovado">Reprovado</option>
-                        <option value="Em Análise">Em Análise</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="observacoesTesteCpEdicao">Observações Gerais:</label>
-                    <textarea id="observacoesTesteCpEdicao" rows="4"></textarea>
-                </div>
-                
                 <button type="submit" class="submit-button" style="background-color: #28a745;">Salvar Alterações</button>
             </form>
         </div>
@@ -136,12 +119,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js"></script>
     
     <script>
-        // Lógica de carregamento SIMPLIFICADA e ROBUSTA
         if (typeof firebaseConfig !== 'undefined' && firebase.apps.length === 0) {
             firebase.initializeApp(firebaseConfig);
         }
         var scriptPagina = document.createElement('script');
-        scriptPagina.src = 'visualizar_testes_cp_app.js'; // Aponta para o JS correto
+        scriptPagina.src = 'visualizar_testes_cp_app.js';
         document.body.appendChild(scriptPagina);
     </script>
 </body>
